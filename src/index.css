@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+/* Token lấy từ bản UI review Stitch (srs/GoWithBae_UI_Review_v1). Màu/font cuối chờ OQ-01. */
+@theme {
+  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #004885;
+  --color-primary-container: #1760a8;
+  --color-on-primary: #ffffff;
+  --color-secondary: #705b42;
+  --color-secondary-container: #f8dbbc;
+  --color-tertiary: #6c3a0f;
+  --color-surface: #f6f9ff;
+  --color-surface-container: #e1f0ff;
+  --color-surface-container-low: #ecf5ff;
+  --color-on-surface: #0f1d27;
+  --color-on-surface-variant: #414751;
+  --color-outline: #727782;
+  --color-error: #ba1a1a;
+}
+
+body {
+  @apply bg-surface text-on-surface font-sans antialiased;
+}
