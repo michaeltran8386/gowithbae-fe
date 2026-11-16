@@ -26,4 +26,4 @@ npm run dev        # gọi backend thật: /api được proxy tới http://loca
 - **Backend:** mới có `GET /places` (một phần). Các màn còn lại chạy được bằng `npm run dev:mock`.
 - **Chờ backend cập nhật contract:** CCR-01 (số lần đã đi), CCR-02 (lưu “Bỏ qua lời nhắc” ở server), CCR-03 (người nhận xem các nơi trước khi tham gia). Chi tiết: [docs/frontend/02-frontend-architecture.md](docs/frontend/02-frontend-architecture.md) §3.
 
-Nhật ký triển khai: [docs/frontend/05-implementation-log.md](docs/frontend/05-implementation-log.md).
+Nhật ký triển khai: [docs/frontend/05-implementation-log.md](docs/frontend/05-implementation-log.md) · Báo cáo nghiệm thu: [docs/frontend/06-final-handover.md](docs/frontend/06-final-handover.md).

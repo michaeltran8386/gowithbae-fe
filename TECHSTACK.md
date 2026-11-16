@@ -41,6 +41,7 @@ Frontend chỉ nói chuyện với backend qua REST. Không kết nối thẳng 
 | vitest | 5.1.0 | Chạy test |
 | @testing-library/react / jest-dom / user-event | 16.3.3 / 7.0.1 / 14.6.12 | Test theo hành vi người dùng |
 | jsdom | 31.0.1 | Môi trường DOM cho test |
+| axe-core | 4.14.0 | Kiểm tra accessibility tự động trong test (`src/test/a11y.test.tsx`) |
 
 ### 2.4 Gọi API
 

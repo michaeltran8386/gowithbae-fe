@@ -10,6 +10,7 @@ Tài liệu theo từng phase của quy trình requirement → frontend. Mỗi f
 | 3 UX | [03-sitemap.md](03-sitemap.md), [03-user-flows.md](03-user-flows.md), [03-wireframes.md](03-wireframes.md), [03-ux-decisions.md](03-ux-decisions.md) | Xong 16-11-2026 |
 | 4 UI | [04-ui-options.md](04-ui-options.md), [04-design-system-proposal.md](04-design-system-proposal.md), [04-screen-ui-specifications.md](04-screen-ui-specifications.md), [04-design-decisions.md](04-design-decisions.md), mockup [mockups/04-ui-options.html](mockups/04-ui-options.html) | Gate 2 thông qua 16-11-2026 (B+, Stitch làm tham chiếu) |
 | 5 Triển khai | [05-stitch-audit.md](05-stitch-audit.md), [05-implementation-log.md](05-implementation-log.md) | F1 web khách xong trên dữ liệu minh họa; chờ CCR-01/02/03 |
+| 6 QA & nghiệm thu | [06-qa-report.md](06-qa-report.md), [06-requirement-coverage.md](06-requirement-coverage.md), [06-final-handover.md](06-final-handover.md) | **Chờ Gate 3**: 0 FAIL, 57/57 test, 0 vi phạm axe; chưa production-ready |
 
 ## Nguồn
 
