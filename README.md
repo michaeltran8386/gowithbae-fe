@@ -1,26 +1,29 @@
 # gowithbae-fe
 
-Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · openapi-fetch.
+Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · openapi-fetch · TanStack Query.
 
-**Hướng dẫn làm việc (gọi API, quy trình làm màn hình, giao diện):** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md)
+**Hướng dẫn làm việc:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md) · **Phân tích, kiến trúc, UX/UI:** [docs/frontend/](docs/frontend/README.md)
 
 ## Chạy
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173, /api được proxy tới http://localhost:8080
+npm run dev:mock   # dữ liệu minh họa (MSW), không cần backend — mã đăng nhập thử 123456
+npm run dev        # gọi backend thật: /api được proxy tới http://localhost:8080
 ```
 
-Cần backend `gowithbae-be` đang chạy.
+| Lệnh | Việc |
+|---|---|
+| `npm test` | Vitest + Testing Library, dữ liệu qua MSW |
+| `npm run build` | Kiểm tra type + build production (không chứa dữ liệu minh họa) |
+| `npm run lint` | oxlint |
+| `npm run gen:api` | Sinh lại `src/api/schema.d.ts` từ `../gowithbae-be/api/openapi.yaml` |
 
-## API client
+## Trạng thái (16-11-2026)
 
-- Kiểu sinh từ contract: `npm run gen:api` đọc `../gowithbae-be/api/openapi.yaml` → `src/api/schema.d.ts` (không sửa tay).
-- Dùng: `api.GET('/places', { params: { query: { q } } })` từ `src/api/client.ts`; request/response có kiểu đầy đủ.
-- Client tự gắn `Authorization: Bearer` và `X-Recipient-Session` nếu có.
+- **Web khách G1 (F1):** đủ 21 màn S-01…S-21 (khám phá, kết quả, chi tiết, so sánh, đăng nhập, đã lưu, cùng chọn, buổi hẹn + lời nhắc “Đi chưa?”, tài khoản, thông báo, hỗ trợ).
+- **Quản trị (F2):** chưa làm, chờ OQ-15/18/19/20.
+- **Backend:** mới có `GET /places` (một phần). Các màn còn lại chạy được bằng `npm run dev:mock`.
+- **Chờ backend cập nhật contract:** CCR-01 (số lần đã đi), CCR-02 (lưu “Bỏ qua lời nhắc” ở server), CCR-03 (người nhận xem các nơi trước khi tham gia). Chi tiết: [docs/frontend/02-frontend-architecture.md](docs/frontend/02-frontend-architecture.md) §3.
 
-## Màn hình
-
-Route khai báo trong `src/router.tsx`, đặt theo mã mock trong `srs/GoWithBae_UI_Review_v1` (C01–C08, A01–A06).
-`SearchPage` (C02) đã nối API thật; các màn còn lại là `Placeholder`.
-Token màu/font lấy từ mock Stitch (`src/index.css`), chờ chốt OQ-01.
+Nhật ký triển khai: [docs/frontend/05-implementation-log.md](docs/frontend/05-implementation-log.md).
