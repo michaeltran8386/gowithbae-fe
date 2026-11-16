@@ -238,6 +238,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/places/{placeId}/visit-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Số lần tự xác nhận đã đi tại một chi nhánh của tài khoản hiện tại (FR-35, RULE-29)
+         * @description Danh tính lấy từ bearer, không nhận userId từ client. Tính từ các lượt YES hợp lệ,
+         *     mỗi plan/người chỉ một lượt; không đếm click, analytics, dismissal hoặc chuỗi ngày.
+         *     Không cấp qua phiên khách hay ghép vào response địa điểm công khai. Lỗi đọc không được giả count=0.
+         *     Lịch sử nơi ẩn và sửa lượt còn OQ-10/11/25; không chặn chức năng đếm lượt hợp lệ đã CONF.
+         */
+        get: operations["getMyPlaceVisitCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/email-change/verify": {
         parameters: {
             query?: never;
@@ -453,7 +476,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kiểm tra link mời trước khi tham gia; không lộ danh sách gốc (FR-11, RULE-12) */
+        /**
+         * Kiểm tra link mời trước khi tham gia; không lộ danh sách gốc (FR-11, RULE-12)
+         * @description CR-001/RULE-30: khách xem các lựa chọn qua link hợp lệ ngay, không cần tài khoản,
+         *     nhập tên hoặc chiếm suất. displayName chỉ bắt buộc khi join; chỉ cấp dữ liệu trong lời mời,
+         *     không email, ghi chú riêng, danh sách gốc hoặc số lần đã đi của người tạo.
+         */
         get: operations["previewShareGrant"];
         put?: never;
         post?: never;
@@ -564,8 +592,44 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Tự báo đã đến sau giờ hẹn; không phải xác minh của đối tác (FR-18, RULE-15) */
+        /**
+         * Tự xác nhận chuyến đi; không dùng để Bỏ qua lời nhắc (FR-18, FR-35, RULE-15/29)
+         * @description Giữ tương thích thao tác ghi câu trả lời. NO là câu trả lời Không, không phải dismissal.
+         *     Retry cùng plan/người không tạo lượt mới. Quyền actor và sửa câu trả lời còn OQ-10/25.
+         *     UI lời nhắc dùng /reminder với CONFIRM_VISIT hoặc DISMISS, không gửi NO khi bấm Bỏ qua.
+         */
         put: operations["reportVisit"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/date-plans/{planId}/reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trạng thái lời nhắc Đi chưa của người xem hiện tại (FR-18, RULE-15)
+         * @description Đến scheduledAt, web hiển thị khi shouldShow=true; không cần plan chuyển PAST.
+         *     Dismissed/answered/cancelled thì shouldShow=false kể cả tải lại. Chưa có nhắc trả reminder=null.
+         *     Server tính shouldShow/canRespond sau kiểm tra quyền và trạng thái hiện hành, không tin client.
+         *     Không nhắc plan đã hủy, không tự thêm email/push. Actor và nhắc lại sau sửa giờ còn OQ-10/25.
+         */
+        get: operations["getDateReminder"];
+        /**
+         * Đã đi hoặc chỉ Bỏ qua lời nhắc (FR-18, FR-35, RULE-15/29)
+         * @description DISMISS chỉ lưu dismissed/dismissedAt, giữ visitAnswer và plan, không popup khác; retry không nhắc lại.
+         *     CONFIRM_VISIT ghi YES duy nhất và chuyển nhắc ANSWERED trong cùng transaction.
+         *     Danh tính lấy từ phiên server; phiên khách không tự tạo lượt cá nhân. Kiểm tra quyền, plan chưa hủy,
+         *     scheduledAt đã đến và trạng thái nhắc tại thời điểm ghi. Retry cùng action đã thành công trả trạng thái;
+         *     action khác trên nhắc đã đóng trả 409, không tự mở lại/sửa lượt trước khi OQ-10/25 chốt.
+         */
+        put: operations["respondToDateReminder"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1511,6 +1575,8 @@ export interface components {
         ShareGrantPreview: {
             creatorName: string;
             candidateCount: number;
+            /** @description Chỉ nội dung được chia sẻ; xem trước không chiếm suất hoặc bắt nhập tên. */
+            candidates: components["schemas"]["PlaceCard"][];
             slotAvailable: boolean;
             /** Format: date-time */
             expiresAt?: string;
@@ -1520,6 +1586,38 @@ export interface components {
             recipientSession: string;
             /** Format: uuid */
             choiceSessionId: string;
+        };
+        PlaceVisitCount: {
+            /** Format: uuid */
+            placeId: string;
+            /** Format: int64 */
+            count: number;
+        };
+        /** @enum {string} */
+        DateReminderStatus: "PENDING" | "SHOWN" | "DISMISSED" | "ANSWERED" | "CANCELLED";
+        DateReminder: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            planId: string;
+            /** Format: date-time */
+            scheduledAt: string;
+            status: components["schemas"]["DateReminderStatus"];
+            /** Format: date-time */
+            dismissedAt?: string | null;
+            /** Format: date-time */
+            answeredAt?: string | null;
+        };
+        DateReminderState: {
+            reminder: components["schemas"]["DateReminder"] | null;
+            /** @description Server tính theo scheduledAt/quyền/plan và trạng thái nhắc, không phải plan PAST. */
+            shouldShow: boolean;
+            /** @description Theo actor đã duyệt; không mặc định người nhận link được ghi lượt cá nhân. */
+            canRespond: boolean;
+        };
+        DateReminderAction: {
+            /** @enum {string} */
+            action: "CONFIRM_VISIT" | "DISMISS";
         };
         /** @enum {string} */
         DatePlanStatus: "SCHEDULED" | "CANCELLED" | "PAST";
@@ -2247,6 +2345,30 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    getMyPlaceVisitCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                placeId: components["parameters"]["PlaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceVisitCount"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     verifyEmailChange: {
         parameters: {
             query?: never;
@@ -2885,6 +3007,58 @@ export interface operations {
                 };
                 content?: never;
             };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getDateReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: components["parameters"]["PlanId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DateReminderState"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    respondToDateReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: components["parameters"]["PlanId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DateReminderAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DateReminderState"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
