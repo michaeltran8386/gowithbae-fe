@@ -72,18 +72,18 @@ export function PlanForm({
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1.5 text-sm font-semibold">Ngày giờ hẹn (giờ Việt Nam)</legend>
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Field.Root error={timeError}>
+          <Field.Root error={timeError} className="min-w-0">
             <span className="sr-only">
               <Field.Label>Ngày</Field.Label>
             </span>
-            <Field.Input type="date" min={today} value={date} onChange={(e) => change(() => setDate(e.target.value))} required />
+            <Field.Input type="date" min={today} value={date} onChange={(e) => change(() => setDate(e.target.value))} required className="min-w-0" />
             <Field.Error />
           </Field.Root>
           <Field.Root>
             <span className="sr-only">
               <Field.Label>Giờ</Field.Label>
             </span>
-            <Field.Input type="time" step={900} value={time} onChange={(e) => change(() => setTime(e.target.value))} required className="w-32" />
+            <Field.Input type="time" step={900} value={time} onChange={(e) => change(() => setTime(e.target.value))} required className="w-28" />
           </Field.Root>
         </div>
         {dayInfo && (

@@ -44,7 +44,9 @@ export function usePlace(placeId: string) {
 export function useComparePlaces(ids: string[]) {
   return useQuery({
     queryKey: ['places', 'compare', ids],
-    queryFn: () => unwrap(api.GET('/places/compare', { params: { query: { ids } } })),
+    // Contract: `ids` style form, explode false → ids=a,b (openapi-fetch mặc định explode true)
+    queryFn: () =>
+      unwrap(api.GET('/places/compare', { params: { query: { ids } }, querySerializer: { array: { style: 'form', explode: false } } })),
     enabled: ids.length >= 2,
   })
 }

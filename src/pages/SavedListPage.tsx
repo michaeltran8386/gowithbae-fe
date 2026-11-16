@@ -58,6 +58,7 @@ export function SavedListPage() {
         )}
       </div>
 
+      <h2 className="sr-only">Địa điểm trong danh sách</h2>
       <div className="mt-6">
         {l.items.length === 0 ? (
           <EmptyState title="Danh sách đang trống" action={<ButtonLink to="/">Khám phá địa điểm</ButtonLink>}>

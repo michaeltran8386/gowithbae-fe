@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { CalendarPlus, ChevronRight, Clock, Flag, MapPin, Navigation, Phone, Wallet } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { isStatus, problemMessage } from '../api/problem.ts'
@@ -65,13 +65,13 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
   return (
     <article className="pb-24 lg:pb-0">
       <nav aria-label="Đường dẫn" className="mb-3 hidden items-center gap-1 text-[13px] text-ink-muted md:flex">
-        <Link to="/" className="hover:text-action">
+        <Link to="/" className="inline-flex min-h-6 items-center py-1 hover:text-action">
           Khám phá
         </Link>
         <ChevronRight size={14} aria-hidden="true" />
         {place.area && (
           <>
-            <Link to={`/search?areaId=${place.area.id}`} className="hover:text-action">
+            <Link to={`/search?areaId=${place.area.id}`} className="inline-flex min-h-6 items-center py-1 hover:text-action">
               {place.area.name}
             </Link>
             <ChevronRight size={14} aria-hidden="true" />
@@ -222,14 +222,14 @@ function Gallery({ place }: { place: Schemas['PlaceDetail'] }) {
 
 function Fact({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-block border border-line bg-white p-2.5 sm:flex-row sm:items-start sm:gap-3 sm:p-3">
-      <span className="text-action sm:mt-0.5" aria-hidden="true">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <dt className="text-xs text-ink-muted">{label}</dt>
-        <dd className="text-sm font-semibold break-words sm:text-[15px]">{children}</dd>
-      </div>
+    <div className="flex min-w-0 flex-col gap-1 rounded-block border border-line bg-white p-2.5 sm:p-3">
+      <dt className="flex flex-col gap-1 text-xs text-ink-muted sm:flex-row sm:items-center sm:gap-2">
+        <span className="text-action" aria-hidden="true">
+          {icon}
+        </span>
+        {label}
+      </dt>
+      <dd className="text-sm font-semibold break-words sm:text-[15px]">{children}</dd>
     </div>
   )
 }
@@ -294,7 +294,6 @@ const REASONS: { value: Schemas['PlaceReportReason']; label: string }[] = [
 function ReportPlaceDialog({ placeId, placeName, open, onClose }: { placeId: string; placeName: string; open: boolean; onClose: () => void }) {
   const report = useReportPlace(placeId)
   const toast = useToast()
-  const navigate = useNavigate()
   const [reason, setReason] = useState<Schemas['PlaceReportReason'] | ''>('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState<string>()
@@ -338,9 +337,9 @@ function ReportPlaceDialog({ placeId, placeName, open, onClose }: { placeId: str
           <p className="text-sm text-ink-muted">
             Mã báo cáo: <span className="tabular">{report.data.id.slice(-8).toUpperCase()}</span>. Thông tin trên trang chưa thay đổi cho đến khi được kiểm tra.
           </p>
-          <button type="button" className="self-start text-sm text-action hover:underline" onClick={() => navigate('/')}>
+          <Link to="/" className="self-start text-sm text-action hover:underline">
             Về Khám phá
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="flex flex-col gap-4">

@@ -82,6 +82,7 @@ function ChoiceVote({ session }: { session: Schemas['ChoiceSession'] }) {
         </div>
       </div>
 
+      <h2 className="sr-only">Các lựa chọn</h2>
       <ul className="mt-4 flex flex-col gap-3">
         {session.candidates.map((c) => (
           <li key={c.id}>
@@ -166,7 +167,7 @@ function SharingSection({ session }: { session: Schemas['ChoiceSession'] }) {
 
 export function BackToSession({ sessionId }: { sessionId: string }) {
   return (
-    <Link to={`/choice/${sessionId}`} className="text-sm text-action hover:underline">
+    <Link to={`/choice/${sessionId}`} className="inline-flex min-h-11 items-center text-sm text-action hover:underline">
       Quay lại bỏ phiếu
     </Link>
   )

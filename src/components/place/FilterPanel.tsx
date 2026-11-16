@@ -87,13 +87,13 @@ export function FilterPanel({
         <legend className="mb-1 text-sm font-semibold">Ngày giờ dự định đến</legend>
         <p className="mb-2 text-[13px] text-ink-muted">Chỉ hiện nơi có giờ mở cửa đã xác minh vào lúc đó.</p>
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <label>
+          <label className="min-w-0">
             <span className="sr-only">Ngày</span>
             <input
               type="date"
               value={value.date}
               onChange={(e) => set({ date: e.target.value, time: value.time || '19:00' })}
-              className="min-h-11 w-full rounded-control border border-field bg-white px-3"
+              className="min-h-11 w-full min-w-0 rounded-control border border-field bg-white px-3"
             />
           </label>
           <label>

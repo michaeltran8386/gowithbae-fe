@@ -85,7 +85,7 @@ export function AppLayout() {
 
       {!hideBottomNav && (
         <nav
-          aria-label="Điều hướng chính"
+          aria-label="Thanh điều hướng"
           className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
         >
           {NAV.map((n) => (

@@ -58,8 +58,8 @@ function CreateInvite({ list }: { list: Schemas['SavedListDetail'] }) {
           <CircleCheck className="text-success" aria-hidden="true" /> Đã tạo lời mời
         </h1>
         <p className="mt-1 text-ink-muted">Gửi liên kết này cho người ấy. Liên kết chỉ hiển thị một lần ở đây.</p>
-        <div className="mt-5 rounded-block border border-line bg-white p-4" onCopy={() => setCopiedOrLeft(true)} onClick={(e) => (e.target as HTMLElement).closest('button') && setCopiedOrLeft(true)}>
-          <ShareLinkPanel url={s.shareGrant.inviteUrl} expiresAt={s.shareGrant.expiresAt} />
+        <div className="mt-5 rounded-block border border-line bg-white p-4">
+          <ShareLinkPanel url={s.shareGrant.inviteUrl} expiresAt={s.shareGrant.expiresAt} onShared={() => setCopiedOrLeft(true)} />
         </div>
         <div className="mt-5">
           <ButtonLink to={`/choice/${s.id}`} onClick={() => setCopiedOrLeft(true)}>

@@ -18,6 +18,7 @@ export function DiscoverPage() {
   const { state } = useAuth()
   return (
     <div className="flex flex-col gap-10">
+      <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
       {state.status === 'member' && <ContinueSection />}
       <SearchHero />
       <Collections />
@@ -99,9 +100,9 @@ function SearchHero() {
 
   return (
     <section aria-labelledby="search-heading">
-      <h1 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">
+      <h2 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">
         Tìm nơi hẹn hò
-      </h1>
+      </h2>
       <p className="mt-1 text-ink-muted">Lọc theo khu vực, ngân sách cho hai người và việc hai bạn muốn làm.</p>
       <form
         role="search"

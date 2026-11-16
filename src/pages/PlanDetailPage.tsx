@@ -50,7 +50,7 @@ function PlanDetail({ plan }: { plan: Schemas['DatePlan'] }) {
   return (
     <div className="mx-auto max-w-3xl">
       {owner && (
-        <Link to="/plans" className="text-sm text-action hover:underline">
+        <Link to="/plans" className="inline-flex min-h-11 items-center text-sm text-action hover:underline">
           Buổi hẹn
         </Link>
       )}

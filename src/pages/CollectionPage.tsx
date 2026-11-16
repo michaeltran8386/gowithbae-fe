@@ -23,6 +23,7 @@ export function CollectionPage() {
     <>
       <h1 className="text-2xl font-bold md:text-3xl">{c.title}</h1>
       {c.body && <p className="mt-2 max-w-[70ch] text-ink-muted">{c.body}</p>}
+      <h2 className="sr-only">Địa điểm trong bộ sưu tập</h2>
       <div className="mt-6">
         {c.places?.length ? <PlaceGrid places={c.places} /> : <EmptyState title="Bộ sưu tập chưa có địa điểm đang hiển thị" />}
       </div>

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import type { Schemas } from '../api/client.ts'
 import { useMarkNotificationRead, useNotifications } from '../hooks/account.ts'
 import { formatRelative } from '../lib/format.ts'
@@ -12,11 +12,24 @@ function targetOf(n: Schemas['Notification']) {
   return null
 }
 
+/** Link thật khi có đối tượng (mở tab mới được); không có đối tượng thì chỉ đánh dấu đã đọc. */
+function NotificationRow({ to, onOpen, children }: { to: string | null; onOpen: () => void; children: React.ReactNode }) {
+  const className = 'flex w-full items-start gap-3 px-4 py-3.5 text-left hover:bg-page'
+  return to ? (
+    <Link to={to} onClick={onOpen} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <button type="button" onClick={onOpen} className={className}>
+      {children}
+    </button>
+  )
+}
+
 /** S-17 Thông báo — FR-21. Trạng thái đọc là PROP (OQ-14). */
 export function NotificationsPage() {
   const notifications = useNotifications()
   const markRead = useMarkNotificationRead()
-  const navigate = useNavigate()
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -35,14 +48,7 @@ export function NotificationsPage() {
               const target = targetOf(n)
               return (
                 <li key={n.id} className="border-b border-line last:border-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (unread) markRead.mutate(n.id)
-                      if (target) navigate(target)
-                    }}
-                    className="flex w-full items-start gap-3 px-4 py-3.5 text-left hover:bg-page"
-                  >
+                  <NotificationRow to={target} onOpen={() => unread && markRead.mutate(n.id)}>
                     <span aria-hidden="true" className={`mt-2 size-2 shrink-0 rounded-full ${unread ? 'bg-sky' : 'bg-transparent'}`} />
                     <span className="min-w-0 flex-1">
                       <span className={`block ${unread ? 'font-semibold' : ''}`}>
@@ -51,7 +57,7 @@ export function NotificationsPage() {
                       </span>
                       <span className="text-[13px] text-ink-muted">{formatRelative(n.createdAt)}</span>
                     </span>
-                  </button>
+                  </NotificationRow>
                 </li>
               )
             })}
