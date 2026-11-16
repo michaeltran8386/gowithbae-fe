@@ -2,6 +2,8 @@
 
 Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · openapi-fetch.
 
+**Hướng dẫn làm việc (gọi API, quy trình làm màn hình, giao diện):** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md)
+
 ## Chạy
 
 ```bash
