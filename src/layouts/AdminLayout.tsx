@@ -1,4 +1,7 @@
 import { NavLink, Outlet } from 'react-router'
+import { useAuth } from '../app/auth.tsx'
+import { EmptyState, LoadingState } from '../components/ui/StateView.tsx'
+import { ButtonLink } from '../components/ui/Button.tsx'
 
 const NAV = [
   { to: '/admin', label: 'Hàng chờ duyệt', end: true },
@@ -11,11 +14,20 @@ const NAV = [
   { to: '/admin/audit', label: 'Nhật ký' },
 ]
 
+/** Quản trị (F2, chưa lên lịch). Ẩn với người không có vai trò nhân sự — chỉ là UX, quyền thật ở server. */
 export function AdminLayout() {
+  const { state, meta } = useAuth()
+  if (state.status === 'loading') return <LoadingState />
+  if (!meta.isStaff)
+    return (
+      <div className="mx-auto max-w-xl p-6">
+        <EmptyState title="Không tìm thấy trang" action={<ButtonLink to="/">Về Khám phá</ButtonLink>} />
+      </div>
+    )
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <nav className="border-b border-surface-container bg-white p-4 md:w-56 md:border-r md:border-b-0" aria-label="Quản trị">
-        <p className="mb-3 font-bold text-primary">GoWithBae Admin</p>
+      <nav className="border-b border-line bg-white p-4 md:w-56 md:border-r md:border-b-0" aria-label="Quản trị">
+        <p className="mb-3 font-bold text-action">GoWithBae Admin</p>
         <ul className="flex flex-wrap gap-2 md:flex-col">
           {NAV.map((n) => (
             <li key={n.to}>
@@ -23,7 +35,7 @@ export function AdminLayout() {
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) =>
-                  `block rounded-lg px-3 py-2 text-sm ${isActive ? 'bg-surface-container font-semibold text-primary' : 'text-on-surface-variant hover:bg-surface-container-low'}`
+                  `block rounded-control px-3 py-2 text-sm ${isActive ? 'bg-action-soft font-semibold text-action' : 'text-ink-muted hover:bg-page'}`
                 }
               >
                 {n.label}
@@ -32,7 +44,7 @@ export function AdminLayout() {
           ))}
         </ul>
       </nav>
-      <main className="flex-1 p-6">
+      <main id="main" className="flex-1 p-6">
         <Outlet />
       </main>
     </div>

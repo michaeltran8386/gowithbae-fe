@@ -1,23 +1,94 @@
 @import 'tailwindcss';
 
-/* Token lấy từ bản UI review Stitch (srs/GoWithBae_UI_Review_v1). Màu/font cuối chờ OQ-01. */
+/*
+ * Design tokens — docs/frontend/04-design-system-proposal.md (hướng B+, Gate 2 ngày 16-11-2026).
+ * Màu lấy từ logo trong file yêu cầu gốc; chữ/nút dùng sắc đậm đã kiểm tra tương phản AA.
+ * Màu chính thức chờ OQ-01: chỉ cần đổi giá trị ở đây.
+ */
 @theme {
   --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #004885;
-  --color-primary-container: #1760a8;
-  --color-on-primary: #ffffff;
-  --color-secondary: #705b42;
-  --color-secondary-container: #f8dbbc;
-  --color-tertiary: #6c3a0f;
-  --color-surface: #f6f9ff;
-  --color-surface-container: #e1f0ff;
-  --color-surface-container-low: #ecf5ff;
-  --color-on-surface: #0f1d27;
-  --color-on-surface-variant: #414751;
-  --color-outline: #727782;
-  --color-error: #ba1a1a;
+
+  --color-page: #f4f8fa;
+  --color-surface: #ffffff;
+  --color-ink: #14324a;
+  --color-ink-muted: #4a6275;
+  --color-line: #d6e6ef;
+  --color-field: #7f98a8;
+
+  --color-action: #0070b8;
+  --color-action-hover: #00659f;
+  --color-action-soft: #eaf7fd;
+  --color-sky: #00b0f8;
+  --color-sky-100: #bce9fa;
+
+  --color-heart: #fa9a6e;
+  --color-attention: #b4532a;
+  --color-peach-50: #fff1ea;
+  --color-ticket-edge: #f2c6b0;
+
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeceb;
+  --color-success: #1e7b4a;
+
+  --radius-control: 10px;
+  --radius-block: 14px;
+  --radius-ticket: 16px;
+
+  --shadow-raised: 0 1px 2px rgb(20 50 74 / 0.06), 0 4px 12px rgb(20 50 74 / 0.06);
 }
 
-body {
-  @apply bg-surface text-on-surface font-sans antialiased;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: 5rem;
+  }
+  body {
+    @apply bg-page font-sans text-[15px] leading-6 text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-action);
+    outline-offset: 2px;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Safari iOS không tự zoom */
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Vé hẹn: răng cưa hai bên tại đường đục lỗ; trình duyệt không hỗ trợ mask thì giữ bo góc thường. */
+@utility ticket-notch {
+  @supports (mask: radial-gradient(#000, #000)) {
+    mask:
+      radial-gradient(10px at 0 var(--notch-y, 60%), #0000 98%, #000) left / 51% 100% no-repeat,
+      radial-gradient(10px at 100% var(--notch-y, 60%), #0000 98%, #000) right / 51% 100% no-repeat;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
