@@ -2,6 +2,8 @@
 
 Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · openapi-fetch.
 
+**Yêu cầu sản phẩm:** [SRS hợp nhất G1](docs/SRS.md) — cùng nội dung với bản trong repo backend.
+
 **Hướng dẫn làm việc (gọi API, quy trình làm màn hình, giao diện):** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md)
 
 ## Chạy
