@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     // Dev: gọi /api/v1 cùng origin, Vite chuyển tới Spring Boot → không cần CORS.
-    proxy: { '/api': process.env.VITE_API_TARGET || 'http://localhost:8081' },
+    proxy: { '/api': process.env.VITE_API_TARGET || 'http://localhost:8080' },
   },
   test: {
     environment: 'jsdom',
