@@ -1,6 +1,6 @@
 # Hướng dẫn làm việc — Frontend GoWithBae G1
 
-Đọc kèm: contract `gowithbae-be/api/openapi.yaml`, hướng dẫn backend `gowithbae-be/docs/DEVELOPMENT.md`, mock UI `srs/GoWithBae_UI_Review_v1` (HTML + PNG), SRS `GWB-REQ-G1` §8.
+Đọc kèm: contract `gowithbae-be/api/openapi.yaml`, hướng dẫn backend `gowithbae-be/docs/DEVELOPMENT.md`, hồ sơ thiết kế [docs/frontend/](frontend/README.md) (màn hình, component, design system, đặc tả UI), SRS `GWB-REQ-G1` v1.1.
 
 ## 1. Nguyên tắc
 
@@ -20,9 +20,13 @@ npm run dev
 
 Mở `http://localhost:5173`. Vite proxy mọi request `/api/*` sang backend, nên không cần cấu hình CORS khi dev. Thử `/search` để thấy dữ liệu thật.
 
+**Không có backend?** `npm run dev:mock` bật MSW với dữ liệu minh họa (`src/mocks/`). Mã đăng nhập thử: `123456`. Link mời mẫu: `/invite/loi-moi-mau` (hợp lệ), `/invite/loi-moi-da-thu-hoi` (đã thu hồi). Trang luôn hiện dải “Dữ liệu minh họa”.
+
 | Lệnh | Việc |
 |---|---|
-| `npm run dev` | Dev server |
+| `npm run dev` | Dev server (backend thật) |
+| `npm run dev:mock` | Dev server + dữ liệu minh họa |
+| `npm test` | Vitest |
 | `npm run gen:api` | Sinh lại `src/api/schema.d.ts` từ contract |
 | `npm run build` | Kiểm tra type (`tsc -b`) + build production vào `dist/` |
 | `npm run lint` | oxlint |
@@ -35,16 +39,26 @@ Mở `http://localhost:5173`. Vite proxy mọi request `/api/*` sang backend, n�
 src/
   api/
     schema.d.ts       CODE SINH — không sửa tay
-    client.ts         client openapi-fetch + gắn header xác thực
-  layouts/
-    AppLayout.tsx     khung khách hàng: header + điều hướng đáy trên mobile
-    AdminLayout.tsx   khung quản trị
-  pages/              mỗi màn một file; tên theo màn hình
-  router.tsx          bảng route, ghi mã màn (C01..C08, A01..A06) và FR
-  index.css           Tailwind + token màu/font
+    client.ts         client openapi-fetch + gắn header xác thực, xử lý 401
+    problem.ts        chuẩn hóa lỗi Problem (status → câu chữ SRS, lỗi theo trường)
+  app/
+    router.tsx        bảng route (lazy theo màn), ghi mã màn S-xx và FR
+    providers.tsx     QueryClient, Auth, khay so sánh, toast
+    auth.tsx          AuthProvider, RequireAuth, loginHref(returnTo, intent)
+    compare.tsx       khay so sánh tối đa 3 (localStorage)
+  layouts/            AppLayout, MinimalLayout (login, link mời), AdminLayout
+  pages/              mỗi màn một file
+  components/
+    ui/               Button (variant tường minh), Field (compound), Dialog, StateView…
+    place/ choice/ plan/   component theo nghiệp vụ
+  hooks/              hook TanStack Query theo resource; useNow
+  lib/                format (tiền, giờ VN), hours, analytics, storage, idempotency
+  mocks/              MSW + dữ liệu minh họa (chỉ dev/test)
+  test/               setup Vitest, renderApp, test luồng theo AC
+  index.css           Tailwind + design token
 ```
 
-Khi trang lớn dần: tách component dùng lại vào `src/components/`, logic gọi API dùng chung vào hook trong `src/hooks/`. Chỉ tách khi có chỗ thứ hai dùng.
+Tách component dùng lại vào `src/components/`, logic gọi API vào hook trong `src/hooks/`. Chỉ tách khi có chỗ thứ hai dùng. Ưu tiên composition (compound component, variant tường minh) thay vì thêm prop boolean.
 
 ## 4. Gọi API
 
@@ -85,11 +99,11 @@ if (error) {
 
 Ví dụ: C03 Chi tiết địa điểm.
 
-1. **Đọc yêu cầu:** mock `srs/GoWithBae_UI_Review_v1/C03_Chi_tiet_dia_diem_Desktop.html` + `.png`, FR liên quan ghi trong `router.tsx` (FR-05), và operation `getPlace` trong contract.
-2. **Kiểm tra backend:** gọi thử endpoint. Nếu trả 501, phối hợp với backend; trong lúc chờ, dựng UI với dữ liệu mẫu đúng kiểu `Schemas['PlaceDetail']`.
+1. **Đọc yêu cầu:** đặc tả màn trong `docs/frontend/04-screen-ui-specifications.md`, FR ghi trong `src/app/router.tsx` (FR-05), và operation `getPlace` trong contract.
+2. **Kiểm tra backend:** gọi thử endpoint. Nếu trả 501, phối hợp với backend; trong lúc chờ, thêm handler vào `src/mocks/handlers.ts` với dữ liệu đúng kiểu `Schemas['PlaceDetail']` (`satisfies`).
 3. **Tạo page:** `src/pages/PlaceDetailPage.tsx`, thay `Placeholder` trong `router.tsx`.
 4. **Đủ trạng thái:** loading, rỗng, lỗi có nút thử lại (SRS §8). Nút đang gửi phải bị khóa để không tạo bản ghi trùng.
-5. **Kiểm tra:** `npm run build && npm run lint`, xem ở chiều rộng 360 px và desktop, thao tác được bằng bàn phím.
+5. **Kiểm tra:** `npm run build && npm run lint && npm test`, viết test cho AC của màn trong `src/test/`, xem ở chiều rộng 360 px và desktop, thao tác được bằng bàn phím.
 
 ### Khi contract đổi
 
@@ -102,7 +116,7 @@ Lỗi type sau khi sinh lại chính là danh sách chỗ phải sửa. Commit `
 
 ## 6. Giao diện
 
-- **Màu và font:** dùng token trong `src/index.css` (`bg-primary`, `text-on-surface-variant`, `bg-secondary-container`...). Không dùng mã màu hex rời trong component. Token lấy từ mock, chờ chốt OQ-01.
+- **Màu và font:** dùng token trong `src/index.css` (`bg-action`, `text-ink-muted`, `bg-peach-50`, `rounded-control`…). Không dùng mã màu hex rời trong component. Token theo design system B+ (docs/frontend/04), màu đo từ logo, chờ mã chính thức OQ-01. `sky` và `heart` chỉ dùng trang trí (tương phản thấp), chữ dùng `action`/`attention`.
 - **Mobile trước:** không tràn chữ/nút/bảng ở 360 px (NFR-02). Mobile có thanh điều hướng đáy: Khám phá, Đã lưu, Buổi hẹn, Tài khoản.
 - **Truy cập (NFR-03):** ô nhập có `<label>` (có thể `sr-only`), ảnh có `alt`, lỗi gắn `role="alert"`, mọi thao tác dùng được bằng bàn phím.
 - **Câu chữ bắt buộc theo SRS:**
@@ -110,6 +124,8 @@ Lỗi type sau khi sinh lại chính là danh sách chỗ phải sửa. Commit `
   - Khoảng cách: ghi "ước tính", không gọi là thời gian đi.
   - So sánh tối đa 3: "Bạn chỉ có thể so sánh tối đa 3 địa điểm".
   - Chưa trả lời ≠ Bỏ qua trong phiếu cùng chọn.
+  - Lời nhắc buổi hẹn: đúng hai nút “Đã đi” / “Bỏ qua lời nhắc”; không dùng “Chưa đi”, không mở popup khác (CR-001).
+  - Không hiển thị số sao, lượt đánh giá, hay “đang mở cửa” khi giờ chưa xác minh.
 - **Tiền:** `Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })`.
 - **Giờ:** hiển thị theo giờ Việt Nam (`timeZone: 'Asia/Ho_Chi_Minh'`), gửi lên API dạng ISO-8601 có offset.
 

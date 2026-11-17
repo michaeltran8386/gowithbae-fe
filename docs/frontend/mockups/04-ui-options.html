@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoWithBae — So sánh 3 hướng UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-500:#00B0F8; --sky-700:#0070B8; --sky-800:#00659F; --ink:#14324A; --muted:#4A6275;
+    --sky-50:#EAF7FD; --sky-100:#BCE9FA; --peach-400:#FA9A6E; --peach-700:#B4532A; --peach-50:#FFF1EA;
+    --line:#D6E6EF; --page:#F4F8FA;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 'Be Vietnam Pro',system-ui,sans-serif}
+  .doc{max-width:1240px;margin:0 auto;padding:32px 16px 64px}
+  .doc>header h1{font-size:28px;line-height:1.2;margin:0 0 8px}
+  .doc>header p{margin:0;color:var(--muted);max-width:70ch}
+  .note{margin-top:12px;display:inline-block;background:#FFF7D6;border:1px solid #E9D48A;border-radius:8px;padding:6px 10px;font-size:13px;color:#5A4A10}
+  section.opt{margin-top:48px}
+  section.opt>h2{font-size:22px;margin:0 0 4px}
+  section.opt>p{margin:0 0 20px;color:var(--muted);max-width:75ch}
+  .frames{display:flex;flex-wrap:wrap;gap:24px}
+  figure{margin:0}
+  figcaption{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+  .phone{width:360px;height:740px;border-radius:28px;border:8px solid #1E2B35;overflow:hidden;position:relative;background:#fff;display:flex;flex-direction:column}
+  .scroll{flex:1;overflow:hidden}
+  .ph-img{background:linear-gradient(135deg,#cfe7f3,#e9f3f8);display:flex;align-items:center;justify-content:center;color:#6f8797;font-size:12px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  button{font:inherit;cursor:pointer}
+  svg{display:block}
+
+  /* ================= OPTION A — Practical & Minimal ================= */
+  .A{font-family:'Be Vietnam Pro',sans-serif;color:var(--ink)}
+  .A .top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .A .logo{font-weight:700;color:var(--sky-700);font-size:18px}
+  .A .body{padding:16px}
+  .A h3{font-size:20px;margin:0 0 12px}
+  .A .search{display:flex;align-items:center;gap:8px;border:1px solid #7F98A8;border-radius:8px;padding:10px 12px;color:var(--muted)}
+  .A .row{display:flex;gap:8px;margin:12px 0}
+  .A .sel{flex:1;border:1px solid #7F98A8;border-radius:8px;padding:8px 10px;font-size:14px;display:flex;justify-content:space-between}
+  .A .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .A .chip{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+  .A .remind{border:1px solid var(--line);border-left:4px solid var(--sky-700);border-radius:8px;padding:12px;margin-bottom:16px}
+  .A .remind b{display:block}
+  .A .remind small{color:var(--muted)}
+  .A .btns{display:flex;gap:8px;margin-top:10px}
+  .A .btn{border-radius:8px;padding:8px 14px;border:1px solid var(--sky-700);background:var(--sky-700);color:#fff;font-weight:600;font-size:14px}
+  .A .btn.ghost{background:#fff;color:var(--sky-700)}
+  .A .item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .A .item .ph-img{width:88px;height:72px;border-radius:6px;flex:none}
+  .A .item b{font-size:15px}
+  .A .item small{display:block;color:var(--muted)}
+  .A .price{font-weight:600}
+  .A .unk{color:var(--muted);font-style:italic}
+  .A h4{font-size:15px;margin:16px 0 4px;padding-top:12px;border-top:1px solid var(--line)}
+  .A .bottom{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);font-size:12px;text-align:center}
+  .A .bottom span{padding:10px 0;color:var(--muted)} .A .bottom .on{color:var(--sky-700);font-weight:600}
+  .A .bar{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--line)}
+  .A .bar .btn{text-align:center;white-space:nowrap}
+  .A .bar .btn:last-child{flex:1}
+  .A .vote{padding:12px 0;border-bottom:1px solid var(--line)}
+  .A .seg{display:flex;gap:8px;margin-top:8px}
+  .A .seg button{flex:1;border:1px solid #7F98A8;background:#fff;border-radius:8px;padding:8px}
+  .A .seg .on{background:var(--sky-700);border-color:var(--sky-700);color:#fff;font-weight:600}
+  .A .status{font-size:12px;color:var(--muted)}
+
+  /* ================= OPTION B — UX-Optimized ================= */
+  .B{font-family:'Be Vietnam Pro',sans-serif;background:var(--page)}
+  .B .top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff}
+  .B .logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px}
+  .B .logo i{width:22px;height:22px;border-radius:7px;background:var(--sky-500);display:inline-block}
+  .B .body{padding:12px 16px}
+  .B .lbl{font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 8px}
+  .B .cont{background:#fff;border-radius:14px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+  .B .cont .ic{width:36px;height:36px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center}
+  .B .cont b{font-size:14px;display:block} .B .cont small{color:var(--muted);font-size:12px}
+  .B .remind{border:2px solid var(--sky-700)}
+  .B .remind .acts{display:flex;gap:8px;margin-top:10px}
+  .B .btn{border:none;border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px;background:var(--sky-700);color:#fff}
+  .B .btn.sec{background:var(--sky-50);color:var(--sky-800)}
+  .B .progress{height:6px;border-radius:3px;background:var(--sky-50);margin-top:6px;overflow:hidden}
+  .B .progress span{display:block;height:100%;background:var(--sky-700)}
+  .B .search{background:#fff;border-radius:12px;padding:11px 12px;display:flex;gap:8px;color:var(--muted);border:1px solid var(--line)}
+  .B .qf{display:flex;gap:8px;overflow:hidden;margin-top:10px}
+  .B .qf span{white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px}
+  .B .qf .on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .B .card{background:#fff;border-radius:14px;overflow:hidden;margin-top:10px}
+  .B .card .ph-img{height:120px}
+  .B .card .c{padding:10px 12px}
+  .B .card .t{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .B .num{font-variant-numeric:tabular-nums;font-weight:700}
+  .B .tags{display:flex;gap:6px;margin-top:6px} .B .tags span{font-size:12px;color:var(--muted);background:var(--page);border-radius:6px;padding:2px 8px}
+  .B .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+  .B .facts div{background:#fff;border-radius:12px;padding:8px 10px}
+  .B .facts small{display:block;font-size:11px;color:var(--muted)} .B .facts b{font-size:14px}
+  .B .sec-card{background:#fff;border-radius:14px;padding:12px;margin-top:8px}
+  .B .sec-card h4{margin:0 0 4px;font-size:14px}
+  .B .unk{color:var(--muted)}
+  .B .bar{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--line)}
+  .B .icb{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center}
+  .B .bar .btn{flex:1}
+  .B .bottom{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--line);font-size:11px;text-align:center}
+  .B .bottom span{padding:8px 0 10px;color:var(--muted)} .B .bottom .on{color:var(--sky-700);font-weight:700}
+  .B .bottom i{display:block;width:20px;height:20px;margin:0 auto 2px;border-radius:6px;background:currentColor;opacity:.35} .B .bottom .on i{opacity:1}
+  .B .vote{background:#fff;border-radius:14px;padding:10px;margin-top:8px;display:grid;grid-template-columns:64px 1fr;gap:10px}
+  .B .vote .ph-img{height:64px;border-radius:10px}
+  .B .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;grid-column:1/-1}
+  .B .seg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;font-weight:600;font-size:13px;color:var(--ink)}
+  .B .seg .like{background:var(--sky-700);color:#fff;border-color:var(--sky-700)}
+  .B .seg .skip{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .B .pending{font-size:12px;color:var(--peach-700);font-weight:600}
+  .B .mutual{font-size:12px;color:var(--sky-800);font-weight:600}
+
+  /* ================= OPTION C — Distinctive "Bầu trời & vé hẹn" ================= */
+  .C{font-family:'Be Vietnam Pro',sans-serif;background:#fff}
+  .C .disp{font-family:'Baloo 2',sans-serif;line-height:1.05;letter-spacing:-.01em}
+  .C .sky{background:radial-gradient(120px 60px at 80% 30%,rgba(255,255,255,.9),transparent 70%),radial-gradient(160px 70px at 15% 70%,rgba(255,255,255,.8),transparent 70%),linear-gradient(180deg,var(--sky-100),#E6F6FD 70%,#fff);padding:14px 16px 22px}
+  .C .top{display:flex;justify-content:space-between;align-items:center}
+  .C .logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--sky-800)}
+  .C .logo em{font-style:normal;color:var(--peach-700)}
+  .C h3{font-size:34px;margin:18px 0 12px;color:var(--ink);font-weight:800}
+  .C .search{background:#fff;border-radius:999px;padding:12px 18px;color:var(--muted);box-shadow:0 6px 20px rgba(0,112,184,.18);display:flex;gap:8px}
+  .C .body{padding:0 16px 12px}
+  .C .ticket{position:relative;margin-top:-6px;background:var(--peach-50);border-radius:16px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:8px;
+     -webkit-mask:radial-gradient(10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
+             mask:radial-gradient(10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+  .C .ticket b{font-family:'Baloo 2',sans-serif;font-size:20px;line-height:1.1;display:block}
+  .C .ticket small{color:var(--muted)}
+  .C .ticket .acts{grid-column:1/-1;display:flex;gap:8px;border-top:2px dashed #F2C6B0;padding-top:10px}
+  .C .btn{border:none;border-radius:999px;padding:9px 16px;font-weight:600;font-size:14px;background:var(--sky-700);color:#fff}
+  .C .btn.out{background:transparent;color:var(--peach-700);border:1.5px solid var(--peach-700)}
+  .C .cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .C .pc{border-radius:18px;overflow:hidden;background:var(--sky-50)}
+  .C .pc .ph-img{height:96px;border-radius:18px 18px 0 0}
+  .C .pc div.c{padding:8px 10px}
+  .C .pc b{font-size:13px;display:block;line-height:1.3}
+  .C .pc small{font-size:12px;color:var(--muted)}
+  .C .hero{height:230px;border-radius:0 0 40px 40px}
+  .C .pricetag{display:inline-flex;align-items:center;gap:6px;background:var(--sky-50);color:var(--sky-800);font-weight:700;border-radius:999px;padding:6px 12px;margin-top:8px}
+  .C .visit{display:inline-flex;align-items:center;gap:6px;color:var(--peach-700);font-weight:600;font-size:13px;margin-top:6px}
+  .C h4{font-family:'Baloo 2',sans-serif;font-size:19px;margin:14px 0 2px}
+  .C .unk{color:var(--muted)}
+  .C .bar{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line);align-items:center}
+  .C .bar .btn{flex:1}
+  .C .heartbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center}
+  .C .bottom{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);font-size:11px;text-align:center}
+  .C .bottom span{padding:10px 0;color:var(--muted)} .C .bottom .on{color:var(--sky-800);font-weight:700}
+  .C .vote{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .C .vote .ph-img{height:72px;border-radius:50%}
+  .C .vbtns{display:flex;gap:8px;margin-top:6px}
+  .C .vbtns button{border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+  .C .vbtns .liked{background:var(--peach-50);border-color:var(--peach-700);color:var(--peach-700)}
+  .C .vbtns .skipped{background:var(--sky-50);border-color:var(--sky-700);color:var(--sky-800)}
+
+  @media (max-width:420px){.phone{width:100%;border-width:0;border-radius:16px}}
+</style>
+</head>
+<body>
+<main class="doc">
+<header>
+  <h1>GoWithBae — 3 hướng UI để so sánh</h1>
+  <p>Mỗi hướng gồm 3 màn đại diện ở 360 px: Khám phá (có lời nhắc “Đi chưa?”), Chi tiết địa điểm, Bỏ phiếu cùng chọn. Cả ba dùng cùng màu thương hiệu lấy từ logo (xanh trời #00B0F8, cam đào #FA9A6E) và cùng nội dung; khác nhau ở bố cục, điều hướng, kiểu chữ và cách xử lý tương tác.</p>
+  <span class="note">Mockup minh họa tĩnh, dữ liệu giả (tên quán, giá đều là ví dụ). Ảnh là khung giữ chỗ. Không phải thiết kế cuối.</span>
+</header>
+
+<!-- ======================== OPTION A ======================== -->
+<section class="opt" aria-labelledby="hA">
+  <h2 id="hA">A — Gọn & thực dụng</h2>
+  <p>Nền trắng, đường kẻ mảnh, danh sách dạng hàng ngang. Màu xanh chỉ dành cho hành động. Bố cục quen thuộc, ít component, dễ làm và dễ bảo trì.</p>
+  <div class="frames">
+    <figure><div class="phone A">
+      <div class="top"><span class="logo">GoWithBae</span><span aria-hidden="true">🔔</span></div>
+      <div class="scroll"><div class="body">
+        <div class="remind"><b>Đi chưa? Xưởng gốm Đất Lành</b><small>Hẹn lúc 19:00, 16/11</small>
+          <div class="btns"><button class="btn">Đã đi</button><button class="btn ghost">Bỏ qua lời nhắc</button></div></div>
+        <h3>Tìm nơi hẹn hò</h3>
+        <div class="search">⌕ Tên quán, khu vực, hoạt động</div>
+        <div class="row"><span class="sel">Khu vực <span>▾</span></span><span class="sel">Ngân sách <span>▾</span></span></div>
+        <div class="chips"><span class="chip">Ăn uống</span><span class="chip">Cà phê</span><span class="chip">Làm gốm</span><span class="chip">Vẽ tranh</span><span class="chip">Xem phim</span></div>
+        <h4 style="border:0;padding:0;margin-top:20px">Gợi ý cuối tuần</h4>
+        <div class="item"><div class="ph-img">ảnh</div><div><b>Cà phê Mái Hiên</b><small>Quận 3</small><span class="price">180.000 ₫ / 2 người</span></div></div>
+        <div class="item"><div class="ph-img">ảnh</div><div><b>Rooftop Hoàng Hôn</b><small>Quận 1</small><span class="unk">Chưa có thông tin giá</span></div></div>
+      </div></div>
+      <nav class="bottom"><span class="on">Khám phá</span><span>Đã lưu</span><span>Buổi hẹn</span><span>Tài khoản</span></nav>
+    </div><figcaption>A · Khám phá</figcaption></figure>
+
+    <figure><div class="phone A">
+      <div class="top"><span>← Quay lại</span><span>⋯</span></div>
+      <div class="scroll">
+        <div class="ph-img" style="height:200px">ảnh địa điểm</div>
+        <div class="body">
+          <h3 style="margin-bottom:2px">Xưởng gốm Đất Lành</h3>
+          <small style="color:var(--muted)">Quận 3 · Workshop</small>
+          <h4>Giá cho hai người</h4><span class="price">300.000 ₫</span> <small style="color:var(--muted)">gồm 2 phần đất + nung</small>
+          <h4>Trải nghiệm</h4><span>Làm gốm, Yên tĩnh, Hẹn đầu</span>
+          <h4>Giờ mở cửa</h4><span class="unk">Chưa có thông tin giờ mở cửa</span>
+          <h4>Địa chỉ</h4><span>12 đường Ví Dụ, Quận 3</span>
+        </div>
+      </div>
+      <div class="bar"><button class="btn ghost">Lưu</button><button class="btn ghost">So sánh</button><button class="btn">Lên kế hoạch</button></div>
+    </div><figcaption>A · Chi tiết địa điểm</figcaption></figure>
+
+    <figure><div class="phone A">
+      <div class="top"><span>← Cùng chọn với Lan</span><span></span></div>
+      <div class="scroll"><div class="body">
+        <p class="status" style="margin:0 0 8px">Bạn đã trả lời 2/3</p>
+        <div class="vote"><b>Cà phê Mái Hiên</b><div class="seg"><button class="on" aria-pressed="true">Thích</button><button aria-pressed="false">Bỏ qua</button></div></div>
+        <div class="vote"><b>Xưởng gốm Đất Lành</b><div class="seg"><button aria-pressed="false">Thích</button><button class="on" aria-pressed="true">Bỏ qua</button></div></div>
+        <div class="vote"><b>Rooftop Hoàng Hôn</b><span class="status"> · Chưa trả lời</span><div class="seg"><button aria-pressed="false">Thích</button><button aria-pressed="false">Bỏ qua</button></div></div>
+        <div style="margin-top:16px"><button class="btn" style="width:100%">Xem kết quả</button></div>
+      </div></div>
+    </div><figcaption>A · Bỏ phiếu</figcaption></figure>
+  </div>
+</section>
+
+<!-- ======================== OPTION B ======================== -->
+<section class="opt" aria-labelledby="hB">
+  <h2 id="hB">B — Tối ưu hành trình</h2>
+  <p>Trang chủ mở bằng khu “Tiếp tục” (lời nhắc, phiên đang chọn, buổi hẹn sắp tới), sau đó mới đến tìm kiếm. Bộ lọc nhanh nằm ngay dưới ô tìm. Chi tiết đưa 3 thông tin quyết định (giá, giờ hôm nay, khu vực) lên đầu. Bỏ phiếu có tiến độ và nhóm cùng thích rõ ràng.</p>
+  <div class="frames">
+    <figure><div class="phone B">
+      <div class="top"><span class="logo"><i aria-hidden="true"></i>GoWithBae</span><span aria-hidden="true">🔔</span></div>
+      <div class="scroll"><div class="body">
+        <div class="lbl">Tiếp tục</div>
+        <div class="cont remind"><div style="flex:1"><b>Bạn đã đến Xưởng gốm Đất Lành chưa?</b><small>Hẹn lúc 19:00 hôm nay</small>
+          <div class="acts"><button class="btn">Đã đi</button><button class="btn sec">Bỏ qua lời nhắc</button></div></div></div>
+        <div class="cont"><span class="ic" style="background:var(--peach-50)" aria-hidden="true">♡</span><div style="flex:1"><b>Cùng chọn với Lan</b><small>Lan đã trả lời 2/3 nơi</small><div class="progress"><span style="width:66%"></span></div></div></div>
+        <div class="lbl">Tìm nơi mới</div>
+        <div class="search">⌕ Tên quán, khu vực, hoạt động</div>
+        <div class="qf"><span class="on">Cuối tuần</span><span>Dưới 200k</span><span>Quận 3</span><span>Làm gốm</span><span>Ngoài trời</span></div>
+        <div class="card"><div class="ph-img">ảnh</div><div class="c"><div class="t"><b>Cà phê Mái Hiên</b><span aria-label="Lưu">♡</span></div>
+          <small style="color:var(--muted)">Quận 3</small><div class="num">180.000 ₫ <small style="font-weight:400;color:var(--muted)">/ 2 người</small></div>
+          <div class="tags"><span>Cà phê</span><span>Yên tĩnh</span><span>Có mèo</span></div></div></div>
+      </div></div>
+      <nav class="bottom"><span class="on"><i></i>Khám phá</span><span><i></i>Đã lưu</span><span><i></i>Buổi hẹn</span><span><i></i>Tài khoản</span></nav>
+    </div><figcaption>B · Khám phá</figcaption></figure>
+
+    <figure><div class="phone B">
+      <div class="scroll">
+        <div class="ph-img" style="height:190px">ảnh địa điểm</div>
+        <div class="body">
+          <b style="font-size:20px">Xưởng gốm Đất Lành</b><br><small style="color:var(--muted)">Workshop · Đã đi 2 lần</small>
+          <div class="facts"><div><small>Giá 2 người</small><b class="num">300.000 ₫</b></div><div><small>Hôm nay</small><b class="unk">Chưa rõ giờ</b></div><div><small>Khu vực</small><b>Quận 3</b></div></div>
+          <div class="sec-card"><h4>Trải nghiệm</h4><span>Làm gốm · Yên tĩnh · Hẹn đầu</span></div>
+          <div class="sec-card"><h4>Tiện ích</h4><span>Khu không hút thuốc</span><br><span class="unk">Tiếp cận xe lăn: chưa có thông tin</span></div>
+          <div class="sec-card"><h4>Địa chỉ</h4><span>12 đường Ví Dụ, Quận 3</span></div>
+        </div>
+      </div>
+      <div class="bar"><span class="icb" aria-label="Lưu">♡</span><span class="icb" aria-label="So sánh">⇄</span><button class="btn">Lên kế hoạch</button></div>
+    </div><figcaption>B · Chi tiết địa điểm</figcaption></figure>
+
+    <figure><div class="phone B">
+      <div class="top"><span>← Cùng chọn với Lan</span><span></span></div>
+      <div class="scroll"><div class="body">
+        <small style="color:var(--muted)">Bạn đã trả lời 2/3 · Lan đã trả lời 2/3</small>
+        <div class="progress"><span style="width:66%"></span></div>
+        <div class="vote"><div class="ph-img">ảnh</div><div><b>Cà phê Mái Hiên</b><div class="mutual">Cả hai cùng thích</div></div>
+          <div class="seg"><button class="like" aria-pressed="true">Thích</button><button aria-pressed="false">Bỏ qua</button></div></div>
+        <div class="vote"><div class="ph-img">ảnh</div><div><b>Xưởng gốm Đất Lành</b><div class="num" style="font-size:13px">300.000 ₫</div></div>
+          <div class="seg"><button aria-pressed="false">Thích</button><button class="skip" aria-pressed="true">Bỏ qua</button></div></div>
+        <div class="vote"><div class="ph-img">ảnh</div><div><b>Rooftop Hoàng Hôn</b><div class="pending">Bạn chưa trả lời</div></div>
+          <div class="seg"><button aria-pressed="false">Thích</button><button aria-pressed="false">Bỏ qua</button></div></div>
+      </div></div>
+      <div class="bar"><button class="btn">Xem nơi cả hai cùng thích (1)</button></div>
+    </div><figcaption>B · Bỏ phiếu</figcaption></figure>
+  </div>
+</section>
+
+<!-- ======================== OPTION C ======================== -->
+<section class="opt" aria-labelledby="hC">
+  <h2 id="hC">C — Bầu trời & vé hẹn</h2>
+  <p>Lấy cảm hứng trực tiếp từ logo: dải trời xanh có mây trên trang chủ, chữ tiêu đề tròn (Baloo 2) và buổi hẹn trình bày như một tấm vé có răng cưa. Thích là trái tim cam của logo. Cá tính dồn vào hai điểm (dải trời và vé hẹn); phần còn lại giữ yên tĩnh.</p>
+  <div class="frames">
+    <figure><div class="phone C">
+      <div class="scroll">
+        <div class="sky">
+          <div class="top"><span class="logo">Go<em>With</em>Bae</span><span aria-hidden="true">🔔</span></div>
+          <h3 class="disp">Hôm nay hẹn ở đâu?</h3>
+          <div class="search">⌕ Quán, khu vực, hoạt động</div>
+        </div>
+        <div class="body">
+          <div class="ticket"><div><small>Buổi hẹn 19:00 hôm nay</small><b>Đi chưa? Xưởng gốm Đất Lành</b></div>
+            <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FA9A6E" d="M12 21s-7-4.4-9.3-8.6C1 9 3 5 6.6 5c2 0 3.4 1.2 4.4 2.6C12 6.2 13.4 5 15.4 5 19 5 21 9 19.3 12.4 17 16.6 12 21 12 21z"/></svg>
+            <div class="acts"><button class="btn">Đã đi</button><button class="btn out">Bỏ qua lời nhắc</button></div></div>
+          <h4 class="disp">Bộ sưu tập cuối tuần</h4>
+          <div class="cards">
+            <div class="pc"><div class="ph-img">ảnh</div><div class="c"><b>Cà phê Mái Hiên</b><small>180.000 ₫ / 2 người</small></div></div>
+            <div class="pc"><div class="ph-img">ảnh</div><div class="c"><b>Rooftop Hoàng Hôn</b><small class="unk">Chưa có thông tin giá</small></div></div>
+          </div>
+        </div>
+      </div>
+      <nav class="bottom"><span class="on">Khám phá</span><span>Đã lưu</span><span>Buổi hẹn</span><span>Tài khoản</span></nav>
+    </div><figcaption>C · Khám phá</figcaption></figure>
+
+    <figure><div class="phone C">
+      <div class="scroll">
+        <div class="ph-img hero">ảnh địa điểm</div>
+        <div class="body">
+          <h3 class="disp" style="font-size:28px;margin:14px 0 0">Xưởng gốm Đất Lành</h3>
+          <small style="color:var(--muted)">Workshop ở Quận 3</small><br>
+          <span class="visit"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FA9A6E" d="M12 21s-7-4.4-9.3-8.6C1 9 3 5 6.6 5c2 0 3.4 1.2 4.4 2.6C12 6.2 13.4 5 15.4 5 19 5 21 9 19.3 12.4 17 16.6 12 21 12 21z"/></svg>Đã đi 2 lần</span><br>
+          <span class="pricetag">300.000 ₫ cho hai người</span>
+          <h4>Trải nghiệm</h4><span>Làm gốm, không khí yên tĩnh, hợp hẹn đầu</span>
+          <h4>Giờ mở cửa</h4><span class="unk">Chưa có thông tin giờ mở cửa</span>
+          <h4>Địa chỉ</h4><span>12 đường Ví Dụ, Quận 3</span>
+        </div>
+      </div>
+      <div class="bar"><span class="heartbtn" aria-label="Lưu">♡</span><span class="heartbtn" aria-label="So sánh">⇄</span><button class="btn">Lên kế hoạch</button></div>
+    </div><figcaption>C · Chi tiết địa điểm</figcaption></figure>
+
+    <figure><div class="phone C">
+      <div class="scroll"><div class="sky" style="padding-bottom:14px">
+        <div class="top"><span>←</span><span></span></div>
+        <h3 class="disp" style="font-size:26px;margin:8px 0 2px">Cùng chọn với Lan</h3><small style="color:var(--muted)">Bạn đã trả lời 2/3 nơi</small></div>
+        <div class="body">
+          <div class="vote"><div class="ph-img">ảnh</div><div><b>Cà phê Mái Hiên</b><div class="vbtns"><button class="liked" aria-pressed="true">♥ Thích</button><button aria-pressed="false">Bỏ qua</button></div></div></div>
+          <div class="vote"><div class="ph-img">ảnh</div><div><b>Xưởng gốm Đất Lành</b><div class="vbtns"><button aria-pressed="false">♡ Thích</button><button class="skipped" aria-pressed="true">Bỏ qua</button></div></div></div>
+          <div class="vote"><div class="ph-img">ảnh</div><div><b>Rooftop Hoàng Hôn</b><br><small style="color:var(--muted)">Chưa trả lời</small><div class="vbtns"><button aria-pressed="false">♡ Thích</button><button aria-pressed="false">Bỏ qua</button></div></div></div>
+        </div></div>
+      <div class="bar"><button class="btn">Xem nơi cả hai cùng thích</button></div>
+    </div><figcaption>C · Bỏ phiếu</figcaption></figure>
+  </div>
+</section>
+</main>
+</body>
+</html>
