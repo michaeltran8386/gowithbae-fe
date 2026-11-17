@@ -4,6 +4,7 @@ import { CalendarPlus, Lock, MapPin, Navigation, Pencil, TriangleAlert } from 'l
 import type { Schemas } from '../api/client.ts'
 import { isStatus, problemMessage } from '../api/problem.ts'
 import { downloadCalendar, isReminderDue, useDatePlan, useDismissedReminders, usePlanMutations } from '../hooks/plans.ts'
+import { useMyPlaceVisitCount } from '../hooks/places.ts'
 import { VN_TZ, priceForTwo } from '../lib/format.ts'
 import { useNow } from '../hooks/useNow.ts'
 import { NotReservedNotice, PlanStatusBadge } from '../components/plan/PlanBits.tsx'
@@ -42,6 +43,7 @@ function PlanDetail({ plan }: { plan: Schemas['DatePlan'] }) {
   const now = useNow()
   const dismissed = useDismissedReminders()
   const owner = plan.viewerRole === 'OWNER'
+  const visitCount = useMyPlaceVisitCount(plan.place.id, owner && plan.placeAvailable !== false)
   const editable = owner && plan.status === 'SCHEDULED' && new Date(plan.scheduledAt).getTime() > now
   const date = new Date(plan.scheduledAt)
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${plan.place.lat},${plan.place.lng}`
@@ -88,7 +90,11 @@ function PlanDetail({ plan }: { plan: Schemas['DatePlan'] }) {
               <MapPin size={14} aria-hidden="true" />
               {plan.place.areaName ?? 'Chưa có thông tin khu vực'} · <span className="tabular">{priceForTwo(plan.place.price) ?? 'Chưa có thông tin giá'}</span>
             </p>
-            {/* "Đã đi X lần" (FR-35) chờ contract bổ sung myVisitCount — CCR-01 */}
+            {owner && visitCount.data && visitCount.data.count > 0 && (
+              <p className="mt-1 text-[13px] font-semibold text-attention tabular">
+                Đã tự xác nhận đi nơi này {visitCount.data.count} lần
+              </p>
+            )}
             {owner && plan.visitAnswer === 'YES' && (
               <p className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold text-attention">
                 <Heart size={14} /> Bạn đã xác nhận đã đi buổi hẹn này

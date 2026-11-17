@@ -60,7 +60,13 @@ const listeners = new Set<() => void>()
 const subscribe = (fn: () => void) => (listeners.add(fn), () => listeners.delete(fn))
 const snapshot = () => readStorage(DISMISSED_KEY) ?? '[]'
 
-/** Danh sách lời nhắc đã bỏ qua (phản ứng ngay khi bỏ qua, ở mọi màn đang mở). */
+function markLocallyDismissed(planId: string) {
+  const ids = readJson<string[]>(DISMISSED_KEY, [])
+  if (!ids.includes(planId)) writeJson(DISMISSED_KEY, [...ids, planId])
+  listeners.forEach((fn) => fn())
+}
+
+/** Danh sách lời nhắc đã bỏ qua trong phiên cục bộ (kết hợp cùng trạng thái /reminder trên server). */
 export function useDismissedReminders(): string[] {
   const raw = useSyncExternalStore(subscribe, snapshot, () => '[]')
   return useMemo(() => {
@@ -82,22 +88,47 @@ export function isReminderDue(plan: Schemas['DatePlan'], now: number, dismissed:
   )
 }
 
+export function useDateReminder(planId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['date-reminders', planId],
+    queryFn: () => unwrap(api.GET('/date-plans/{planId}/reminder', { params: { path: { planId } } })),
+    enabled: enabled && !!planId,
+    retry: false,
+  })
+}
+
 export function useVisitReminder(planId: string) {
   const qc = useQueryClient()
-  const refresh = () => qc.invalidateQueries({ queryKey: ['date-plans'] })
   return {
     confirmVisited: useMutation({
-      mutationFn: () => unwrap(api.PUT('/date-plans/{planId}/visit-report', { params: { path: { planId } }, body: { answer: 'YES' } })),
-      onSuccess: () => {
+      mutationFn: () =>
+        unwrap(
+          api.PUT('/date-plans/{planId}/reminder', {
+            params: { path: { planId } },
+            body: { action: 'CONFIRM_VISIT' },
+          }),
+        ),
+      onSuccess: (state) => {
         track('visit_self_reported', { objectId: planId, properties: { answer: 'YES' } })
-        return refresh()
+        qc.setQueryData(['date-reminders', planId], state)
+        void qc.invalidateQueries({ queryKey: ['visit-count'] })
+        return qc.invalidateQueries({ queryKey: ['date-plans'] })
       },
     }),
-    dismiss: () => {
-      const ids = readJson<string[]>(DISMISSED_KEY, [])
-      if (!ids.includes(planId)) writeJson(DISMISSED_KEY, [...ids, planId])
-      listeners.forEach((fn) => fn())
-    },
+    dismiss: useMutation({
+      mutationFn: () =>
+        unwrap(
+          api.PUT('/date-plans/{planId}/reminder', {
+            params: { path: { planId } },
+            body: { action: 'DISMISS' },
+          }),
+        ),
+      onSuccess: (state) => {
+        qc.setQueryData(['date-reminders', planId], state)
+        markLocallyDismissed(planId)
+        return qc.invalidateQueries({ queryKey: ['date-reminders', planId] })
+      },
+    }),
   }
 }
 
