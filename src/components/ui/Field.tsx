@@ -86,4 +86,16 @@ function Select({ className = '', children, ...rest }: SelectHTMLAttributes<HTML
   )
 }
 
-export const Field = { Root, Label, Hint, Error: FieldError, Input, Textarea, Select }
+function File({ className = '', ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+  const props = useControlProps()
+  return (
+    <input
+      type="file"
+      className={`block w-full text-sm text-ink-muted file:mr-3 file:rounded-control file:border file:border-line file:bg-page file:px-3 file:py-2 file:text-sm file:font-medium file:text-ink ${className}`}
+      {...props}
+      {...rest}
+    />
+  )
+}
+
+export const Field = { Root, Label, Hint, Error: FieldError, Input, Textarea, Select, File }

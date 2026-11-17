@@ -29,6 +29,7 @@ export function LoginPage() {
   const [step, setStep] = useState<'email' | 'code'>('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
+  const [staffCode, setStaffCode] = useState('')
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
@@ -100,7 +101,7 @@ export function LoginPage() {
           onSubmit={(e) => {
             e.preventDefault()
             verifyOtp.mutate(
-              { email: email.trim(), code },
+              { email: email.trim(), code, ...(staffCode.trim() ? { staffCode: staffCode.trim() } : {}) },
               {
                 onSuccess: (token) => {
                   actions.signIn(token)
@@ -133,6 +134,28 @@ export function LoginPage() {
             />
             <Field.Error />
           </Field.Root>
+          <details className="text-sm text-ink-muted">
+            <summary className="cursor-pointer select-none hover:text-ink">Đăng nhập tài khoản nhân viên / quản trị (nếu có)</summary>
+            <div className="mt-3">
+              <Field.Root hint>
+                <Field.Label optional>Mã xác thực 2 bước (TOTP)</Field.Label>
+                <Field.Input
+                  name="staffCode"
+                  inputMode="numeric"
+                  maxLength={6}
+                  spellCheck={false}
+                  value={staffCode}
+                  onChange={(e) => {
+                    setStaffCode(e.target.value.replace(/\D/g, ''))
+                    verifyOtp.reset()
+                  }}
+                  placeholder="6 chữ số từ Authenticator"
+                  className="tracking-[0.2em] tabular"
+                />
+                <Field.Hint>Chỉ nhập nếu tài khoản của bạn thuộc vai trò nội bộ (Editor, Reviewer, Support, Super Admin).</Field.Hint>
+              </Field.Root>
+            </div>
+          </details>
           <PrimaryButton type="submit" pending={verifyOtp.isPending} disabled={code.length !== 6}>
             Đăng nhập
           </PrimaryButton>

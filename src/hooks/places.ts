@@ -6,6 +6,7 @@ import type { paths } from '../api/schema'
 const TEN_MINUTES = 10 * 60 * 1000
 
 export type PlaceSearchParams = NonNullable<paths['/places']['get']['parameters']['query']>
+export type UploadPurpose = paths['/uploads']['post']['requestBody']['content']['multipart/form-data']['purpose']
 
 export function useTaxonomies() {
   return useQuery({ queryKey: ['taxonomies'], queryFn: () => unwrap(api.GET('/taxonomies')), staleTime: TEN_MINUTES })
@@ -56,4 +57,26 @@ export function useReportPlace(placeId: string) {
     mutationFn: (body: Schemas['PlaceReportCreate']) =>
       unwrap(api.POST('/places/{placeId}/reports', { params: { path: { placeId } }, body })),
   })
+}
+
+/** FR-35: số lần tài khoản hiện tại đã tự xác nhận đã đi tại địa điểm (chỉ gọi khi đã đăng nhập; lỗi không giả count=0). */
+export function useMyPlaceVisitCount(placeId: string, enabled = false) {
+  return useQuery({
+    queryKey: ['visit-count', placeId],
+    queryFn: () => unwrap(api.GET('/me/places/{placeId}/visit-count', { params: { path: { placeId } } })),
+    enabled: enabled && !!placeId,
+    retry: false,
+  })
+}
+
+export async function uploadImageFile(file: File, purpose: UploadPurpose): Promise<Schemas['StoredFile']> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('purpose', purpose)
+  return unwrap(
+    api.POST('/uploads', {
+      body: form as unknown as { file: string; purpose: UploadPurpose },
+      bodySerializer: (b) => b as unknown as BodyInit,
+    }),
+  )
 }

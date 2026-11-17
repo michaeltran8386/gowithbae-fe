@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { LinkIcon, UsersRound } from 'lucide-react'
+import { LinkIcon, MapPin, UsersRound } from 'lucide-react'
 import { fieldErrors, isStatus, problemMessage } from '../api/problem.ts'
 import { useInvitePreview, useJoinInvite } from '../hooks/choice.ts'
-import { formatDateTime } from '../lib/format.ts'
+import { formatDateTime, priceForTwo } from '../lib/format.ts'
+import { PlaceMedia } from '../components/place/PlaceMedia.tsx'
 import { Field } from '../components/ui/Field.tsx'
 import { PrimaryButton } from '../components/ui/Button.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
@@ -67,6 +68,25 @@ export function InvitePage() {
         Có <span className="font-semibold text-ink tabular">{p.candidateCount}</span> địa điểm. Bạn bấm Thích hoặc Bỏ qua từng nơi; {p.creatorName} sẽ chọn nơi cuối cùng.
       </p>
       {p.expiresAt && <p className="mt-1 text-[13px] text-ink-muted tabular">Lời mời có hiệu lực đến {formatDateTime(p.expiresAt)}.</p>}
+
+      {p.candidates && p.candidates.length > 0 && (
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2" aria-label="Danh sách địa điểm trong lời mời">
+          {p.candidates.map((c) => (
+            <li key={c.id} className="flex items-center gap-3 rounded-control border border-line bg-page p-2.5">
+              <div className="size-12 shrink-0 overflow-hidden rounded-control">
+                <PlaceMedia url={c.coverUrl} name={c.name} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{c.name}</p>
+                <p className="flex items-center gap-1 truncate text-xs text-ink-muted">
+                  <MapPin size={12} aria-hidden="true" />
+                  {c.areaName ?? 'Chưa rõ khu vực'} · <span className="tabular">{priceForTwo(c.price) ?? 'Chưa rõ giá'}</span>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <form
         className="mt-6 flex flex-col gap-4"

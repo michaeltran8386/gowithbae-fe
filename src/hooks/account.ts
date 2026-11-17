@@ -7,7 +7,7 @@ export function useAuthMutations() {
   return {
     requestOtp: useMutation({ mutationFn: (email: string) => unwrap(api.POST('/auth/otp/request', { body: { email } })) }),
     verifyOtp: useMutation({
-      mutationFn: (body: { email: string; code: string }) => unwrap(api.POST('/auth/otp/verify', { body })),
+      mutationFn: (body: { email: string; code: string; staffCode?: string }) => unwrap(api.POST('/auth/otp/verify', { body })),
     }),
   }
 }

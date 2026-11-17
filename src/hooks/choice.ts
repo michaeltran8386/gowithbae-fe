@@ -52,7 +52,7 @@ export function useCastVote(sessionId: string) {
     onError: (_e, _v, ctx) => {
       if (ctx?.previous) qc.setQueryData(key, ctx.previous)
     },
-    onSuccess: (_d, v) => track('vote_submitted', { objectId: sessionId, properties: { candidateId: v.candidateId, preference: v.preference } }),
+    onSuccess: (_d, v) => track('vote_submitted', { objectId: sessionId, properties: { candidate_id: v.candidateId, preference: v.preference } }),
     onSettled: () => qc.invalidateQueries({ queryKey: key }),
   })
 }

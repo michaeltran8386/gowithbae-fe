@@ -4,7 +4,7 @@ import { CalendarPlus, ChevronRight, Clock, Flag, MapPin, Navigation, Phone, Wal
 import type { Schemas } from '../api/client.ts'
 import { isStatus, problemMessage } from '../api/problem.ts'
 import { loginHref, useAuth } from '../app/auth.tsx'
-import { usePlace, useReportPlace } from '../hooks/places.ts'
+import { uploadImageFile, useMyPlaceVisitCount, usePlace, useReportPlace } from '../hooks/places.ts'
 import { track } from '../lib/analytics.ts'
 import { DAY_NAMES, formatDistance, formatPlainDate, priceForTwo } from '../lib/format.ts'
 import { describeDay, hoursOn, formatRanges } from '../lib/hours.ts'
@@ -46,6 +46,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
   const [params, setParams] = useSearchParams()
   const [reportOpen, setReportOpen] = useState(false)
   const member = state.status === 'member'
+  const visitCount = useMyPlaceVisitCount(place.id, member)
   const planHref = member ? `/plans/new?placeId=${place.id}` : loginHref(`/plans/new?placeId=${place.id}`)
   // Quay lại sau đăng nhập với intent=save → mở dialog lưu, không tự lưu (UX-06)
   const saveIntent = member && params.get('intent') === 'save'
@@ -90,7 +91,11 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
               {[place.category?.name, place.area?.name].filter(Boolean).join(' · ') || 'Chưa có thông tin loại hình'}
               {place.distanceKm != null && ` · ${formatDistance(place.distanceKm)}`}
             </p>
-            {/* "Đã đi X lần" (FR-35) chờ contract bổ sung myVisitCount — CCR-01 */}
+            {member && visitCount.data && visitCount.data.count > 0 && (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-peach-50 px-3 py-1 text-[13px] font-semibold text-attention tabular">
+                Bạn đã tự xác nhận đi nơi này {visitCount.data.count} lần
+              </p>
+            )}
           </header>
 
           {/* Dải thông tin quyết định (hướng B+) */}
@@ -290,18 +295,22 @@ const REASONS: { value: Schemas['PlaceReportReason']; label: string }[] = [
   { value: 'OTHER', label: 'Khác' },
 ]
 
-/** FR-19: khách không cần đăng nhập; thông tin công khai không đổi ngay (AC-029/030). Ảnh đính kèm: chờ OQ-21. */
+/** FR-19: khách không cần đăng nhập; thông tin công khai không đổi ngay (AC-029/030). Cho phép đính kèm 1 ảnh PNG/JPEG <= 5MB. */
 function ReportPlaceDialog({ placeId, placeName, open, onClose }: { placeId: string; placeName: string; open: boolean; onClose: () => void }) {
   const report = useReportPlace(placeId)
   const toast = useToast()
   const [reason, setReason] = useState<Schemas['PlaceReportReason'] | ''>('')
   const [description, setDescription] = useState('')
+  const [attachment, setAttachment] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string>()
 
   const close = () => {
     report.reset()
     setReason('')
     setDescription('')
+    setAttachment(null)
+    setUploading(false)
     setError(undefined)
     onClose()
   }
@@ -319,10 +328,25 @@ function ReportPlaceDialog({ placeId, placeName, open, onClose }: { placeId: str
           <>
             <GhostButton onClick={close}>Hủy</GhostButton>
             <PrimaryButton
-              pending={report.isPending}
-              onClick={() => {
+              pending={uploading || report.isPending}
+              onClick={async () => {
                 if (!reason) return setError('Hãy chọn loại thông tin sai')
-                report.mutate({ reason, description: description.trim() || undefined }, { onError: (e) => toast.show(problemMessage(e), { tone: 'error' }) })
+                try {
+                  let fileId: string | undefined
+                  if (attachment) {
+                    setUploading(true)
+                    const uploaded = await uploadImageFile(attachment, 'PLACE_REPORT')
+                    fileId = uploaded.id
+                  }
+                  report.mutate(
+                    { reason, description: description.trim() || undefined, fileId },
+                    { onError: (e) => toast.show(problemMessage(e), { tone: 'error' }) },
+                  )
+                } catch (e) {
+                  toast.show(problemMessage(e), { tone: 'error' })
+                } finally {
+                  setUploading(false)
+                }
               }}
             >
               Gửi báo cáo
@@ -372,6 +396,11 @@ function ReportPlaceDialog({ placeId, placeName, open, onClose }: { placeId: str
           <Field.Root>
             <Field.Label optional>Mô tả</Field.Label>
             <Field.Textarea rows={3} maxLength={2000} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="vd. Giá hiện tại là 350.000 ₫ cho hai người…" />
+          </Field.Root>
+          <Field.Root hint>
+            <Field.Label optional>Ảnh minh chứng (PNG/JPEG, tối đa 5 MB)</Field.Label>
+            <Field.File accept="image/png,image/jpeg" onChange={(e) => setAttachment(e.target.files?.[0] ?? null)} />
+            {attachment && <Field.Hint>Đã chọn: {attachment.name}</Field.Hint>}
           </Field.Root>
         </div>
       )}

@@ -56,7 +56,7 @@ export function ComparePage() {
   const places = useComparePlaces(ids)
 
   useEffect(() => {
-    if (places.data) track('comparison_opened', { objectId: ids.join(',') })
+    if (places.data && ids[0]) track('comparison_opened', { objectId: ids[0] })
     // chỉ khi tập so sánh đổi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [places.data])
