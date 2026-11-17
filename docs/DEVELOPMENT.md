@@ -148,6 +148,8 @@ Gửi qua `POST /events` theo danh sách tên sự kiện trong contract (`searc
 
 ## Cập nhật yêu cầu CR-001
 
-SRS hợp nhất v1.2 trong `docs/SRS.md` đã đồng bộ Requirements v1.1: 35 FR, 30 RULE, 25 OQ và 27 UC/58 AC. Contract 0.2.0 bổ sung count cá nhân, trạng thái/thao tác lời nhắc và candidates trong preview link; `src/api/schema.d.ts` đã sinh lại. Đây là cập nhật đặc tả/kiểu API, chưa triển khai component hoặc luồng UI mới.
+SRS hợp nhất v1.3 trong `docs/SRS.md` đã đồng bộ Requirements v1.1: 35 FR, 30 RULE, 25 OQ và 27 UC/58 AC. Contract 0.2.0 bổ sung count cá nhân, trạng thái/thao tác lời nhắc và candidates trong preview link; `src/api/schema.d.ts` đã sinh lại. Đây là cập nhật đặc tả/kiểu API, chưa triển khai component hoặc luồng UI mới.
 
 Khi triển khai: Bỏ qua lời nhắc gửi DISMISS, không gửi visit-report=NO; không giả count=0 khi lỗi; quyền trả lời do server kiểm tra. Các nhánh actor/sửa lượt/nhắc lại sau đổi giờ giữ OQ-10/25.
+
+Ngày17-11-2026: contract0.3.0 thêm staffCode (TOTP) khi verify OTP cho nhân viên. Member thường không cần trường này; đã sinh lại schema. Luồng UI auth/admin do member FE tiếp tục, không triển khai trong phần A backend.

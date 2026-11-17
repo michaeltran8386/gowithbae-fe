@@ -179,7 +179,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Xác minh mã, tạo tài khoản nếu chưa có, cấp phiên (FR-07, RULE-16) */
+        /**
+         * Xác minh mã, tạo tài khoản nếu chưa có, cấp phiên (FR-07, RULE-16)
+         * @description Nhân viên cần thêm staffCode từ TOTP đã provisioning tin cậy (quyết định triển khai A cho NFR-05). Tài khoản thường không cần trường này. Secret TOTP không cấp qua API đăng nhập.
+         */
         post: operations["verifyOtp"];
         delete?: never;
         options?: never;
@@ -1900,6 +1903,15 @@ export interface components {
         };
     };
     responses: {
+        /** @description Lỗi chuẩn của các operation A, gồm validation/quyền/trạng thái/tích hợp chưa sẵn sàng; xem status trong Problem. */
+        StandardError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
         /** @description Dữ liệu không hợp lệ */
         BadRequest: {
             headers: {
@@ -2220,6 +2232,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             429: components["responses"]["TooManyRequests"];
+            default: components["responses"]["StandardError"];
         };
     };
     verifyOtp: {
@@ -2235,6 +2248,8 @@ export interface operations {
                     /** Format: email */
                     email: string;
                     code: string;
+                    /** @description Mã TOTP của nhân viên, bắt buộc khi tài khoản có vai trò nội bộ. */
+                    staffCode?: string;
                 };
             };
         };
@@ -2251,6 +2266,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["TooManyRequests"];
+            default: components["responses"]["StandardError"];
         };
     };
     logout: {
@@ -2269,6 +2285,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            default: components["responses"]["StandardError"];
         };
     };
     getMe: {
@@ -2290,6 +2307,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            default: components["responses"]["StandardError"];
         };
     };
     updateMe: {
@@ -2316,6 +2334,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             403: components["responses"]["Forbidden"];
+            default: components["responses"]["StandardError"];
         };
     };
     requestEmailChange: {
@@ -2343,6 +2362,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             429: components["responses"]["TooManyRequests"];
+            default: components["responses"]["StandardError"];
         };
     };
     getMyPlaceVisitCount: {
@@ -2394,6 +2414,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            default: components["responses"]["StandardError"];
         };
     };
     requestAccountDeletion: {
@@ -2412,6 +2433,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            default: components["responses"]["StandardError"];
         };
     };
     listSavedLists: {
@@ -2432,6 +2454,7 @@ export interface operations {
                     "application/json": components["schemas"]["SavedListSummary"][];
                 };
             };
+            default: components["responses"]["StandardError"];
         };
     };
     createSavedList: {
@@ -2457,6 +2480,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            default: components["responses"]["StandardError"];
         };
     };
     getSavedList: {
@@ -2480,6 +2504,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     deleteSavedList: {
@@ -2501,6 +2526,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     renameSavedList: {
@@ -2528,6 +2554,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     addPlaceToList: {
@@ -2550,6 +2577,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     removePlaceFromList: {
@@ -2572,6 +2600,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     listMyChoiceSessions: {
@@ -3180,6 +3209,7 @@ export interface operations {
                     "application/json": components["schemas"]["NotificationPage"];
                 };
             };
+            default: components["responses"]["StandardError"];
         };
     };
     markNotificationRead: {
@@ -3201,6 +3231,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     uploadFile: {
@@ -3239,6 +3270,7 @@ export interface operations {
                 content?: never;
             };
             429: components["responses"]["TooManyRequests"];
+            default: components["responses"]["StandardError"];
         };
     };
     trackEvents: {
@@ -3264,6 +3296,7 @@ export interface operations {
                 content?: never;
             };
             400: components["responses"]["BadRequest"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminListPlaces: {
@@ -3703,6 +3736,7 @@ export interface operations {
                 };
             };
             403: components["responses"]["Forbidden"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminLockUser: {
@@ -3727,6 +3761,7 @@ export interface operations {
             };
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminUnlockUser: {
@@ -3750,6 +3785,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminSetUserRoles: {
@@ -3781,6 +3817,7 @@ export interface operations {
             };
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminListPlaceReports: {
@@ -4091,6 +4128,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuditLogPage"];
                 };
             };
+            default: components["responses"]["StandardError"];
         };
     };
     adminReportSummary: {
@@ -4118,6 +4156,7 @@ export interface operations {
                 };
             };
             403: components["responses"]["Forbidden"];
+            default: components["responses"]["StandardError"];
         };
     };
     adminExportReport: {
@@ -4145,6 +4184,7 @@ export interface operations {
                 };
             };
             403: components["responses"]["Forbidden"];
+            default: components["responses"]["StandardError"];
         };
     };
 }

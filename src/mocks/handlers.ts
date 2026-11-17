@@ -389,6 +389,7 @@ export const handlers = [
     return json({
       creatorName: s.creatorName,
       candidateCount: s.candidateIds.length,
+      candidates: s.candidateIds.filter(isVisible).map((id) => toCard(findPlace(id)!)),
       slotAvailable: s.recipientName === null,
       expiresAt: s.grant.expiresAt,
     } satisfies Schemas['ShareGrantPreview'])

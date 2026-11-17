@@ -3,7 +3,7 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Mã tài liệu | GWB-SRS-G1 |
-| Phiên bản / ngày tổng hợp | 1.2 / 16-11-2026, giờ Việt Nam |
+| Phiên bản / ngày tổng hợp | 1.3 / 17-11-2026, giờ Việt Nam |
 | Trạng thái | **Draft — tổng hợp nguồn, chưa phải baseline production; không phê duyệt thay PO** |
 | Phạm vi | Web khách hàng G1 + quản trị nội bộ; G2 chỉ định hướng |
 | Đối tượng | Product Owner, BA, thiết kế, FE, BE, QA, nội dung và vận hành |
@@ -824,6 +824,8 @@ Mỗi thay đổi sau duyệt ghi mã CR, người đề nghị, lý do, FR/RULE
 | 1.1 | 16-11-2026 | Hợp nhất Requirements v1.0, UI và audit từ folder srs | Draft; chưa có bộ nguồn GoWithBae khi tổng hợp |
 | 1.2 | 16-11-2026 | Đồng bộ Requirements v1.1/CR-001, 35 FR/30 RULE/25 OQ, 27 UC/58 AC và nguồn gốc đầy đủ; sửa các nhận định thiếu nguồn trước đây | CR-001 CONF; các PROP/OQ khác giữ trạng thái |
 
+| 1.3 | 17-11-2026 | Bổ sung quyết định triển khai A tại §19, SMTP/TOTP, phiên/rate-limit, quyền và interface B/C; không tự baseline các OQ khác | Quyết định triển khai do người yêu cầu giao xử lý; cần review PR |
+
 ## 15. Kết quả audit, mâu thuẫn và quyết định chờ duyệt
 
 ### 15.1 Rủi ro và kiến nghị [AUDIT — chưa phê duyệt]
@@ -929,7 +931,7 @@ Stitch project ID do SRC-REVIEW ghi: `7952218105812848348`, tên `GoWithBae G1 �
 
 ### 16.4 Quan hệ phiên bản và nguồn mới
 
-Requirements v1.1 ngày 15-11-2026 và SRS hợp nhất v1.2 ngày 16-11-2026 là hai hệ phiên bản khác nhau. CR-001 thắng các mô tả nhắc cũ trong UI/Audit; không hỏi lại ba hành vi đã CONF. §15 giữ các audit khác làm lịch sử. Các tài liệu nguồn nói chưa có ứng dụng/không có runtime test phản ánh lần phân tích tài liệu, không phải đánh giá trạng thái code hiện tại.
+Requirements v1.1 ngày 15-11-2026 và SRS hợp nhất v1.3 ngày 17-11-2026 là hai hệ phiên bản khác nhau; v1.2 ngày16-11 được giữ trong lịch sử. CR-001 thắng các mô tả nhắc cũ trong UI/Audit; không hỏi lại ba hành vi đã CONF. §15 giữ các audit khác làm lịch sử. Các tài liệu nguồn nói chưa có ứng dụng/không có runtime test phản ánh lần phân tích tài liệu, không phải đánh giá trạng thái code hiện tại.
 
 ## 17. Use case và tiêu chí nghiệm thu chi tiết
 
@@ -3636,3 +3638,15 @@ Các dòng GAP ở §3 lưu bối cảnh phát hiện ban đầu; trạng thái 
 ### 18.8 Giới hạn bằng chứng kiểm tra
 
 Nguồn Verification Report ghi 17 nhóm kiểm tra tài liệu đạt, 0 nhóm lỗi ngày 15-11-2026: 35 FR/30 RULE/12 NFR/25 nhóm OQ/27 UC/58 AC; Mermaid parse 97 lượt (39 riêng, 58 nhúng), không phải test web/API/email/bản đồ, security, restore hoặc hiệu năng. Các file validation JSON chỉ là kết quả tại thời điểm nguồn; không tự coi là đã kiểm chứng bản SRS hợp nhất hoặc ứng dụng. Bản hợp nhất cần đối chiếu ID, AC, link và tính giống nhau của hai repo khi thay đổi.
+
+## 19. Quyết định triển khai thành viên A — 17-11-2026
+
+Sau khi đọc bộ GoWithBae, người yêu cầu giao làm phần A và cho phép xử lý các chi tiết chưa rõ. Đây là quyết định triển khai phục vụ review, không tự ghi PO đã baseline toàn bộ FR/OQ. Đặc tả nghiệp vụ ở §1–18 giữ nhãn nguồn; bản quyết định chi tiết và trạng thái nằm trong `gowithbae-be/docs/MEMBER_A.md`.
+
+- OQ-06: email OTP 6 số/5 phút/5 lần sai, cooldown60 giây, rate limit DB theo email/IP; phiên8 giờ. Giá trị cấu hình trong AuthPolicy, không hard-code trong FE. SMTP qua cấu hình; thiếu/lỗi mail trả503, không lộ OTP.
+- NFR-05: nhân viên dùng email OTP + TOTP 6 số/30 giây, window ±1 bước và không replay. Secret AES-GCM, provisioning bằng terminal tin cậy; không tự enroll từ một phiên email-only. Contract0.3.0 thêm staffCode tùy chọn, runtime yêu cầu khi có vai trò nội bộ. Member thường giữ luồng email OTP.
+- OQ-14/17/18: inbox chỉ người nhận; đọc idempotent. Khóa/xóa thu hồi phiên ngay, mở khóa không khôi phục. Xóa là nhận yêu cầu DELETION_REQUESTED, chưa tự purge lịch sử. Admin A chỉ SUPER_ADMIN, không tự khóa/hạ quyền hoặc làm mất admin cuối; audit/revocation cùng transaction.
+- OQ-20: event whitelist và dedup; tách guest/account; session ngắt30 phút, event cũ tối đa90 ngày/clock-skew5 phút. Báo cáo theo ngày Việt Nam, tỷ lệ null khi không đo được; chỉ số B/C qua StatisticsContributor, không query chéo hay giả0.
+- OQ-21/22: ảnh PNG/JPEG được decode/kiểm tra, <=5MiB, <=8192px/mỗi chiều, <=16MP; kho local riêng tư, không URL công khai. Anonymous chỉ upload PLACE_REPORT; đọc/đính kèm phải qua quyền đối tượng của module C, không dựa vào đoán fileId. Nhà cung cấp email là SMTP cấu hình được, chưa dùng Supabase Auth/Storage.
+- Các interface B/C cần nối: PlaceQueryService, StatisticsContributor, AccountLifecycleParticipant. Khi thiếu provider B, thao tác list cần dữ liệu nơi trả501; metric chất lượng thiếu provider trảnull+note. FR-35 vẫn thuộc C. Đây là phụ thuộc tích hợp, không phải tự nhận đã làm phần B/C.
+- Retention/purge, backup/restore, SMTP/Supabase production và thử TOTP với thiết bị thật cần vận hành kiểm chứng; không coi test ứng dụng là nghiệm thu production. Chi tiết/giới hạn này không được âm thầm chuyển thành tính năng đã hoàn tất.
