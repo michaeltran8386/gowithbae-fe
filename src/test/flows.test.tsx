@@ -135,5 +135,8 @@ function nextWeekday(dow: number) {
   const d = new Date()
   do d.setDate(d.getDate() + 1)
   while (((d.getDay() + 6) % 7) + 1 !== dow)
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }

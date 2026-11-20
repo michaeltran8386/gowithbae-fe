@@ -91,6 +91,17 @@ export function LoginPage() {
           <PrimaryButton type="submit" pending={requestOtp.isPending} disabled={!email.trim()}>
             Gửi mã đăng nhập
           </PrimaryButton>
+          <GhostButton
+            type="button"
+            className="text-xs text-action hover:underline self-center"
+            onClick={() => {
+              setEmail('admin@baicut.com')
+              setStep('code')
+              setCode('0000')
+            }}
+          >
+            ⚡ Đăng nhập nhanh Admin (admin@baicut.com / mã 0000)
+          </GhostButton>
           <p className="text-[13px] text-ink-muted">Không cần mật khẩu. Chúng tôi không hỏi thông tin về mối quan hệ của bạn.</p>
         </form>
       ) : (
@@ -104,7 +115,8 @@ export function LoginPage() {
               {
                 onSuccess: (token) => {
                   actions.signIn(token)
-                  navigate(destination, { replace: true })
+                  const target = destination === '/' && email.trim().toLowerCase() === 'admin@baicut.com' ? '/admin' : destination
+                  navigate(target, { replace: true })
                 },
               },
             )
@@ -112,7 +124,11 @@ export function LoginPage() {
         >
           {/* Không xác nhận email có tài khoản hay không (server luôn trả 202) */}
           <p role="status" className="text-sm">
-            Nếu email hợp lệ, mã gồm 6 chữ số đã được gửi tới <span className="font-semibold">{email}</span>.
+            {email.trim().toLowerCase() === 'admin@baicut.com' ? (
+              <span className="font-semibold text-action">Tài khoản Admin: mã mặc định là 0000</span>
+            ) : (
+              <>Nếu email hợp lệ, mã gồm 6 chữ số đã được gửi tới <span className="font-semibold">{email}</span>.</>
+            )}
           </p>
           <Field.Root error={codeError}>
             <Field.Label>Mã đăng nhập</Field.Label>
@@ -120,7 +136,7 @@ export function LoginPage() {
               name="code"
               autoComplete="one-time-code"
               inputMode="numeric"
-              pattern="[0-9]{6}"
+              pattern="[0-9]{4,6}"
               maxLength={6}
               spellCheck={false}
               autoFocus
@@ -133,7 +149,7 @@ export function LoginPage() {
             />
             <Field.Error />
           </Field.Root>
-          <PrimaryButton type="submit" pending={verifyOtp.isPending} disabled={code.length !== 6}>
+          <PrimaryButton type="submit" pending={verifyOtp.isPending} disabled={code.length !== 6 && code.length !== 4}>
             Đăng nhập
           </PrimaryButton>
           <div className="flex flex-wrap justify-between gap-2">

@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router'
 import { CalendarClock, ChevronRight, MapPin, Search, Users } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { useAuth } from '../app/auth.tsx'
-import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
+import { useAreas, useCollections, useSearchPlaces, useTaxonomies } from '../hooks/places.ts'
 import { useMyChoiceSessions } from '../hooks/choice.ts'
 import { isReminderDue, useDatePlans, useDismissedReminders } from '../hooks/plans.ts'
 import { formatDateTime } from '../lib/format.ts'
 import { useNow } from '../hooks/useNow.ts'
 import { BUDGETS } from '../lib/budgets.ts'
 import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
+import { PlaceGrid } from '../components/place/PlaceGrid.tsx'
 import { PrimaryButton } from '../components/ui/Button.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 
@@ -21,6 +22,7 @@ export function DiscoverPage() {
       <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
       {state.status === 'member' && <ContinueSection />}
       <SearchHero />
+      <FeaturedPlaces />
       <Collections />
     </div>
   )
@@ -171,6 +173,40 @@ function SearchHero() {
           </ul>
         </nav>
       )}
+    </section>
+  )
+}
+
+function FeaturedPlaces() {
+  const places = useSearchPlaces({ size: 6 })
+  if (places.isPending)
+    return (
+      <section aria-labelledby="featured-heading">
+        <h2 id="featured-heading" className="mb-4 text-xl font-bold">
+          Địa điểm hẹn hò nổi bật
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-64" />
+          ))}
+        </div>
+      </section>
+    )
+  if (places.isError || !places.data?.items?.length) return null
+
+  const total = places.data.page?.totalElements ?? places.data.items.length
+
+  return (
+    <section aria-labelledby="featured-heading">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 id="featured-heading" className="text-xl font-bold">
+          Địa điểm hẹn hò nổi bật
+        </h2>
+        <Link to="/search" className="text-sm font-semibold text-action hover:underline">
+          Xem tất cả ({total})
+        </Link>
+      </div>
+      <PlaceGrid places={places.data.items} />
     </section>
   )
 }
