@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ArrowDown, ArrowLeft, ArrowUp, ImagePlus, Plus, Search, Trash2, X } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import { uploadFile, useAdminCollections, useAdminPlaces, useCollectionMutations } from '../../hooks/adminCatalog.ts'
 import { PageHeader, Panel, Table, td, th } from '../../components/admin/AdminUi.tsx'
 import { ConfirmDialog } from '../../components/ui/Dialog.tsx'
@@ -154,7 +154,7 @@ function CollectionEditor({ existing }: { existing?: Schemas['CollectionDetail']
           </>
         }
       />
-      {save.error && !Object.keys(errors).length && <p role="alert" className="mb-3 text-sm text-danger">{problemMessage(save.error)}</p>}
+      {save.error && !Object.keys(errors).length && <p role="alert" className="mb-3 text-sm text-danger">{adminProblemMessage(save.error)}</p>}
       <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
         <Panel title="Nội dung">
           <div className="flex flex-col gap-4">
@@ -205,7 +205,7 @@ function CollectionEditor({ existing }: { existing?: Schemas['CollectionDetail']
                         setCoverFileId(stored.id)
                         setCoverPreview(URL.createObjectURL(file))
                       } catch (err) {
-                        toast.show(problemMessage(err), { tone: 'error' })
+                        toast.show(adminProblemMessage(err), { tone: 'error' })
                       } finally {
                         setUploading(false)
                       }

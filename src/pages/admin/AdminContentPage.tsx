@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowDown, ArrowUp, ExternalLink, Plus, Trash2 } from 'lucide-react'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import { useAdminSiteContent, useSaveSiteContent, type SiteContent } from '../../hooks/adminSupport.ts'
 import { PageHeader, Panel } from '../../components/admin/AdminUi.tsx'
 import { Field } from '../../components/ui/Field.tsx'
@@ -59,7 +59,7 @@ function ContentEditor({ initial, updatedAt }: { initial: SiteContent; updatedAt
       />
       {save.error && (
         <p role="alert" className="mb-3 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger">
-          {problemMessage(save.error)}
+          {adminProblemMessage(save.error)}
           {Object.entries(errors).map(([k, v]) => (
             <span key={k} className="block">
               {k}: {v}

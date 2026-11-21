@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { ArrowLeft, Lock } from 'lucide-react'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import {
   TICKET_CATEGORY_LABELS,
   TICKET_STATUS_LABELS,
@@ -119,7 +119,7 @@ export function AdminTicketDetailPage() {
   const move = (status: TicketStatus) =>
     m.transition.mutate(status, {
       onSuccess: () => (setConfirmClose(false), toast.show(`Đã chuyển sang “${TICKET_STATUS_LABELS[status]}”`)),
-      onError: (e) => (setConfirmClose(false), toast.show(problemMessage(e), { tone: 'error' })),
+      onError: (e) => (setConfirmClose(false), toast.show(adminProblemMessage(e), { tone: 'error' })),
     })
 
   return (
@@ -178,7 +178,7 @@ export function AdminTicketDetailPage() {
                   <Field.Hint>{internal ? 'Chỉ quản trị viên thấy.' : 'Thành viên thấy và nhận thông báo.'}</Field.Hint>
                   <Field.Textarea rows={4} maxLength={5000} value={body} onChange={(e) => setBody(e.target.value)} />
                 </Field.Root>
-                {m.reply.error && <p role="alert" className="text-sm text-danger">{problemMessage(m.reply.error)}</p>}
+                {m.reply.error && <p role="alert" className="text-sm text-danger">{adminProblemMessage(m.reply.error)}</p>}
                 <PrimaryButton className="self-start" pending={m.reply.isPending} disabled={!body.trim()} onClick={reply}>
                   {internal ? 'Lưu ghi chú' : 'Gửi trả lời'}
                 </PrimaryButton>

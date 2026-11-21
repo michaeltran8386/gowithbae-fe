@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Copy, Plus, Search } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import { ROLE_LABELS, STATUS_LABELS, useAdminUserMutations, useAdminUsers, type Role, type UserStatus } from '../../hooks/admin.ts'
 import { PageHeader, Pagination, Table, copyText, td, th } from '../../components/admin/AdminUi.tsx'
 import { Dialog } from '../../components/ui/Dialog.tsx'
@@ -204,7 +204,7 @@ function CreateUserDialog({ open, onClose }: { open: boolean; onClose: () => voi
       }
     >
       <div className="flex flex-col gap-4">
-        <Field.Root error={errors.email ?? (create.error && !Object.keys(errors).length ? problemMessage(create.error) : undefined)}>
+        <Field.Root error={errors.email ?? (create.error && !Object.keys(errors).length ? adminProblemMessage(create.error) : undefined)}>
           <Field.Label>Email</Field.Label>
           <Field.Input type="email" value={email} onChange={(e) => (setEmail(e.target.value), create.reset())} maxLength={254} autoFocus />
           <Field.Error />

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import QRCode from 'qrcode'
 import { CircleCheck } from 'lucide-react'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import { useCompleteMfaActivation, useMfaActivation } from '../../hooks/admin.ts'
 import { Field } from '../../components/ui/Field.tsx'
 import { ButtonLink, PrimaryButton } from '../../components/ui/Button.tsx'
@@ -88,7 +88,7 @@ export function ActivateMfaPage() {
             className="flex flex-col gap-3"
           >
             <p className="font-semibold">3. Nhập mã 6 số đang hiện trong ứng dụng để xác nhận.</p>
-            <Field.Root error={complete.isError ? problemMessage(complete.error) : undefined}>
+            <Field.Root error={complete.isError ? adminProblemMessage(complete.error) : undefined}>
               <Field.Label>Mã xác nhận</Field.Label>
               <Field.Input
                 name="code"

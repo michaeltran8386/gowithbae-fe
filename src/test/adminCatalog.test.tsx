@@ -60,6 +60,17 @@ describe('Địa điểm', () => {
   })
 })
 
+describe('Không tự duyệt (RULE-21)', () => {
+  it('duyệt địa điểm do chính mình tạo thì hiện đúng lý do từ server', async () => {
+    const pending = catalogDb.places.find((p) => p.status === 'PENDING')!
+    pending.createdBy = '0000000a-0000-4000-8000-000000000001'
+    const { user } = renderAdmin(`/admin/places/${pending.id}`)
+    await user.click(await screen.findByRole('button', { name: 'Duyệt & hiển thị' }))
+    expect(await screen.findByText('Không được tự duyệt địa điểm do chính mình tạo')).toBeInTheDocument()
+    expect(pending.status).toBe('PENDING')
+  })
+})
+
 describe('Nhãn & khu vực', () => {
   it('thêm nhãn mới, ngừng dùng nhãn cũ', async () => {
     const { user } = renderAdmin('/admin/taxonomies')

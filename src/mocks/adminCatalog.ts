@@ -7,6 +7,8 @@ import type { Schemas } from '../api/client.ts'
 import { areas, taxonomies } from './data.ts'
 
 const API = '*/api/v1'
+/** id quản trị viên đang đăng nhập trong mock (adminDb.admin) — dùng cho RULE-21 không tự duyệt. */
+const MOCK_ADMIN_ID = '0000000a-0000-4000-8000-000000000001'
 const json = HttpResponse.json
 const ADMIN = 'Bearer mock-admin-token'
 const isAdmin = (r: Request) => r.headers.get('Authorization') === ADMIN
@@ -168,6 +170,7 @@ export const catalogHandlers = [
     const to = NEXT[action]?.[p.status]
     if (!to) return problem(409, 'Không thể chuyển trạng thái', { code: 'INVALID_TRANSITION' })
     if ((action === 'SUBMIT' || action === 'APPROVE') && blockers(p).length) return problem(400, 'Chưa đủ điều kiện xuất bản')
+    if (action === 'APPROVE' && p.createdBy === MOCK_ADMIN_ID) return problem(403, 'Không được tự duyệt địa điểm do chính mình tạo')
     p.status = to
     p.statusReason = reason ?? null
     p.updatedAt = new Date().toISOString()

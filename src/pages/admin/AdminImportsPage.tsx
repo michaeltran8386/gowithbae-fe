@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ArrowLeft, CircleAlert, CircleCheck, Download, Upload } from 'lucide-react'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import { downloadImportTemplate, useImportBatch, useImportMutations } from '../../hooks/adminCatalog.ts'
 import { PageHeader, Panel, StatCard, Table, td, th } from '../../components/admin/AdminUi.tsx'
 import { PrimaryButton, SecondaryButton } from '../../components/ui/Button.tsx'
@@ -29,7 +29,7 @@ export function AdminImportsPage() {
           <SecondaryButton
             className="mt-3"
             icon={<Download size={16} aria-hidden="true" />}
-            onClick={() => downloadImportTemplate().catch((e) => toast.show(problemMessage(e), { tone: 'error' }))}
+            onClick={() => downloadImportTemplate().catch((e) => toast.show(adminProblemMessage(e), { tone: 'error' }))}
           >
             Tải file mẫu
           </SecondaryButton>
@@ -39,7 +39,7 @@ export function AdminImportsPage() {
           <input type="file" accept=".csv,text/csv" aria-label="File CSV" className="mt-3 block text-sm" onChange={(e) => (setFile(e.target.files?.[0] ?? null), validate.reset())} />
           {validate.error && (
             <div role="alert" className="mt-3 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger">
-              <p className="font-semibold">{problemMessage(validate.error)}</p>
+              <p className="font-semibold">{adminProblemMessage(validate.error)}</p>
               {fileProblems.length > 0 && (
                 <ul className="mt-1 list-disc pl-5">
                   {fileProblems.map((m) => (
@@ -91,7 +91,7 @@ export function AdminImportBatchPage() {
               onClick={() =>
                 commit.mutate(b.id, {
                   onSuccess: (r) => toast.show(`Đã tạo ${r.totalRows} địa điểm nháp`),
-                  onError: (e) => toast.show(problemMessage(e), { tone: 'error' }),
+                  onError: (e) => toast.show(adminProblemMessage(e), { tone: 'error' }),
                 })
               }
             >

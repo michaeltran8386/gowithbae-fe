@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Send } from 'lucide-react'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import { useAdminUsers } from '../../hooks/admin.ts'
 import { useSendNotification, useSentNotifications } from '../../hooks/adminSupport.ts'
 import { PageHeader, Pagination, Panel, Table, td, th } from '../../components/admin/AdminUi.tsx'
@@ -121,7 +121,7 @@ function Composer() {
           </Field.Hint>
           <Field.Textarea rows={4} maxLength={MAX} value={summary} onChange={(e) => setSummary(e.target.value)} />
         </Field.Root>
-        {send.error && <p role="alert" className="text-sm text-danger">{problemMessage(send.error)}</p>}
+        {send.error && <p role="alert" className="text-sm text-danger">{adminProblemMessage(send.error)}</p>}
         <PrimaryButton icon={<Send size={16} aria-hidden="true" />} disabled={!ready} onClick={() => setConfirm(true)}>
           Gửi thông báo
         </PrimaryButton>

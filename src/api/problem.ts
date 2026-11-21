@@ -83,6 +83,16 @@ export function problemMessage(err: unknown): string {
   }
 }
 
+/**
+ * Bản cho trang quản trị: 403/404 hiện lý do server gửi (vd. "Không được tự duyệt địa điểm do chính mình tạo")
+ * thay vì câu chung "Không tìm thấy" — câu chung chỉ hợp với web người dùng, nơi không nên lộ sự tồn tại.
+ */
+export function adminProblemMessage(err: unknown): string {
+  const e = err instanceof ApiError ? err : toApiError(err)
+  if ((e.problem.status === 403 || e.problem.status === 404) && e.problem.detail) return e.problem.detail
+  return problemMessage(e)
+}
+
 /** Lỗi 400 theo trường → map field → message để gắn dưới ô nhập. */
 export function fieldErrors(err: unknown): Record<string, string> {
   if (!(err instanceof ApiError) || !err.problem.errors) return {}

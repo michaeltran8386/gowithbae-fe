@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import { TAXONOMY_GROUP_LABELS, useAdminTaxonomies, useAreas, useTaxonomyMutations } from '../../hooks/adminCatalog.ts'
 import { PageHeader, Panel } from '../../components/admin/AdminUi.tsx'
 import { Dialog } from '../../components/ui/Dialog.tsx'
@@ -152,7 +152,7 @@ function EditDialog({ editing, onClose }: { editing: Editing; onClose: () => voi
           <Field.Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} autoFocus />
           <Field.Error />
         </Field.Root>
-        {mutation.error && !Object.keys(errors).length && <p role="alert" className="text-sm text-danger">{problemMessage(mutation.error)}</p>}
+        {mutation.error && !Object.keys(errors).length && <p role="alert" className="text-sm text-danger">{adminProblemMessage(mutation.error)}</p>}
       </div>
     </Dialog>
   )

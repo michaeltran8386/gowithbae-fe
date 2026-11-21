@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import {
   REPORT_NEXT,
   REPORT_REASON_LABELS,
@@ -196,7 +196,7 @@ export function AdminPlaceReportDetailPage() {
               <Field.Hint>{needsNote ? 'Bắt buộc khi đóng: đã sửa gì, hoặc vì sao không đủ căn cứ.' : 'Chỉ quản trị viên thấy.'}</Field.Hint>
               <Field.Textarea rows={4} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
             </Field.Root>
-            {transition.error && <p role="alert" className="text-sm text-danger">{problemMessage(transition.error)}</p>}
+            {transition.error && <p role="alert" className="text-sm text-danger">{adminProblemMessage(transition.error)}</p>}
             <div className="flex gap-2">
               <PrimaryButton pending={transition.isPending} disabled={!target || (needsNote && !note.trim())} onClick={submit}>
                 Cập nhật

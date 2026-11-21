@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ArrowLeft, Copy, KeyRound, Lock, LogOut, ShieldCheck, Unlock, UserCog } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import { useAuth } from '../../app/auth.tsx'
 import {
   ROLE_LABELS,
@@ -132,7 +132,7 @@ function UserActions({ user }: { user: Schemas['AdminUserDetail'] }) {
                 setLink(data)
                 setDialog('activation')
               },
-              onError: (e) => toast.show(problemMessage(e), { tone: 'error' }),
+              onError: (e) => toast.show(adminProblemMessage(e), { tone: 'error' }),
             })
           }
         >
@@ -161,7 +161,7 @@ function UserActions({ user }: { user: Schemas['AdminUserDetail'] }) {
             </>
           }
         >
-          <Field.Root error={(m.lock.error ?? m.unlock.error) ? problemMessage(m.lock.error ?? m.unlock.error) : undefined}>
+          <Field.Root error={(m.lock.error ?? m.unlock.error) ? adminProblemMessage(m.lock.error ?? m.unlock.error) : undefined}>
             <Field.Label>Lý do (lưu vào nhật ký)</Field.Label>
             <Field.Textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} rows={3} autoFocus />
             <Field.Error />
@@ -201,7 +201,7 @@ function UserActions({ user }: { user: Schemas['AdminUserDetail'] }) {
               </label>
             ))}
           </fieldset>
-          <Field.Root className="mt-4" error={m.setRoles.error ? problemMessage(m.setRoles.error) : undefined}>
+          <Field.Root className="mt-4" error={m.setRoles.error ? adminProblemMessage(m.setRoles.error) : undefined}>
             <Field.Label>Lý do (lưu vào nhật ký)</Field.Label>
             <Field.Textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} rows={2} />
             <Field.Error />

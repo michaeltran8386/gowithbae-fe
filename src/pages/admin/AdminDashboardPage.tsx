@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { Download } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { problemMessage } from '../../api/problem.ts'
+import { adminProblemMessage } from '../../api/problem.ts'
 import {
   downloadReportCsv,
   useNewPlaceReports,
@@ -88,7 +88,7 @@ export function AdminDashboardPage() {
                 try {
                   await downloadReportCsv(query)
                 } catch (e) {
-                  toast.show(problemMessage(e), { tone: 'error' })
+                  toast.show(adminProblemMessage(e), { tone: 'error' })
                 } finally {
                   setExporting(false)
                 }

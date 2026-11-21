@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ArrowLeft, CircleAlert, CircleCheck, ExternalLink, ImagePlus, Plus, Star, Trash2, X } from 'lucide-react'
 import type { Schemas } from '../../api/client.ts'
-import { fieldErrors, problemMessage } from '../../api/problem.ts'
+import { fieldErrors, adminProblemMessage } from '../../api/problem.ts'
 import {
   PLACE_STATUS_LABELS,
   TAXONOMY_GROUP_LABELS,
@@ -20,6 +20,9 @@ import { DangerButton, GhostButton, PrimaryButton, SecondaryButton } from '../..
 import { ErrorState, LoadingState } from '../../components/ui/StateView.tsx'
 import { useToast } from '../../components/ui/Toast.tsx'
 import { PlaceStatusBadge } from './AdminPlacesPage.tsx'
+
+/** Câu điều kiện xuất bản backend dùng khi địa điểm chưa có dòng giá (AdminPlaceService). */
+const PRICE_MISSING_BLOCKER = 'Chưa ghi trạng thái giá'
 
 const DAYS = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
 const EDITABLE = new Set(['DRAFT', 'PENDING'])
@@ -76,7 +79,8 @@ function fromPlace(p: Schemas['AdminPlace'] | undefined): FormState {
     notes: p?.notes ?? '',
     reservation: p?.reservationRecommended == null ? '' : p.reservationRecommended ? 'yes' : 'no',
     tagIds: p?.tags.map((t) => t.id) ?? [],
-    priceStatus: p ? p.price.status : '',
+    // API đọc trả UNKNOWN cả khi chưa có dòng giá (coalesce); dựa vào điều kiện xuất bản để không hiện nhầm “Chưa rõ giá”.
+    priceStatus: !p || p.publishBlockers?.some((b) => b.startsWith(PRICE_MISSING_BLOCKER)) ? '' : p.price.status,
     standardForTwo: p?.price.standardForTwo != null ? String(p.price.standardForTwo) : '',
     min: p?.price.min != null ? String(p.price.min) : '',
     max: p?.price.max != null ? String(p.price.max) : '',
@@ -177,7 +181,7 @@ function PlaceEditor({ place }: { place: Schemas['AdminPlace'] | undefined }) {
         toast.show(place ? 'Đã lưu' : 'Đã tạo nháp — giờ có thể thêm ảnh')
         if (!place) navigate(`/admin/places/${saved.id}`, { replace: true })
       },
-      onError: (e) => toast.show(problemMessage(e), { tone: 'error' }),
+      onError: (e) => toast.show(adminProblemMessage(e), { tone: 'error' }),
     })
 
   return (
@@ -485,7 +489,7 @@ function StatusPanel({ place }: { place: Schemas['AdminPlace'] }) {
           setReason('')
           toast.show(`Đã ${label.toLowerCase()} — trạng thái: ${PLACE_STATUS_LABELS[p.status]}`)
         },
-        onError: (e) => toast.show(problemMessage(e), { tone: 'error' }),
+        onError: (e) => toast.show(adminProblemMessage(e), { tone: 'error' }),
       },
     )
 
@@ -599,7 +603,7 @@ function ImagesPanel({ place, editable }: { place: Schemas['AdminPlace']; editab
                   type="button"
                   aria-label="Xóa ảnh"
                   className="absolute top-1 right-1 rounded-full bg-white/90 p-1 text-danger"
-                  onClick={() => m.removeImage.mutate(img.id, { onError: (e) => toast.show(problemMessage(e), { tone: 'error' }) })}
+                  onClick={() => m.removeImage.mutate(img.id, { onError: (e) => toast.show(adminProblemMessage(e), { tone: 'error' }) })}
                 >
                   <Trash2 size={14} aria-hidden="true" />
                 </button>
@@ -654,7 +658,7 @@ function ImagesPanel({ place, editable }: { place: Schemas['AdminPlace']; editab
                 <input type="checkbox" checked={cover} onChange={(e) => setCover(e.target.checked)} /> Đặt làm ảnh bìa (thay ảnh bìa hiện tại)
               </label>
             )}
-            {m.addImage.error && <p role="alert" className="text-sm text-danger">{problemMessage(m.addImage.error)}</p>}
+            {m.addImage.error && <p role="alert" className="text-sm text-danger">{adminProblemMessage(m.addImage.error)}</p>}
           </div>
         </Dialog>
       )}
