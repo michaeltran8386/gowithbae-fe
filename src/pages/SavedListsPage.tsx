@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { ChevronRight, Plus } from 'lucide-react'
+import { ChevronRight, Plus, Users } from 'lucide-react'
 import { fieldErrors, problemMessage } from '../api/problem.ts'
 import { useSavedListMutations, useSavedLists } from '../hooks/saved.ts'
 import { Dialog } from '../components/ui/Dialog.tsx'
@@ -8,6 +8,7 @@ import { Field } from '../components/ui/Field.tsx'
 import { ButtonLink, GhostButton, PrimaryButton } from '../components/ui/Button.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { Heart } from '../components/ui/Heart.tsx'
+import { canInviteFrom } from '../components/choice/InviteEntry.tsx'
 
 /** S-07 Đã lưu — FR-09: danh sách riêng tư của thành viên. */
 export function SavedListsPage() {
@@ -22,7 +23,7 @@ export function SavedListsPage() {
           Danh sách mới
         </PrimaryButton>
       </div>
-      <p className="mt-1 text-ink-muted">Chỉ bạn thấy các danh sách này.</p>
+      <p className="mt-1 text-ink-muted">Chỉ bạn thấy các danh sách này. Danh sách có từ 2 nơi trở lên thì mời người ấy cùng chọn được.</p>
 
       <div className="mt-6">
         {lists.isPending ? (
@@ -36,8 +37,8 @@ export function SavedListsPage() {
         ) : (
           <ul className="flex flex-col gap-2">
             {lists.data.map((l) => (
-              <li key={l.id}>
-                <Link to={`/saved/${l.id}`} className="flex min-h-16 items-center gap-3 rounded-block border border-line bg-white px-4 py-3 hover:border-action">
+              <li key={l.id} className="flex items-stretch gap-2">
+                <Link to={`/saved/${l.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-block border border-line bg-white px-4 py-3 hover:border-action">
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-peach-50">
                     <Heart size={20} />
                   </span>
@@ -47,6 +48,17 @@ export function SavedListsPage() {
                   </span>
                   <ChevronRight size={18} className="text-ink-muted" aria-hidden="true" />
                 </Link>
+                {canInviteFrom(l) && (
+                  <ButtonLink
+                    to={`/choice/new?listId=${l.id}`}
+                    variant="secondary"
+                    className="shrink-0 self-center"
+                    icon={<Users size={18} aria-hidden="true" />}
+                    aria-label={`Mời cùng chọn từ ${l.name}`}
+                  >
+                    <span className="hidden sm:inline">Mời cùng chọn</span>
+                  </ButtonLink>
+                )}
               </li>
             ))}
           </ul>

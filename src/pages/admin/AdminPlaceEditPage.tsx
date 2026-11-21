@@ -530,9 +530,6 @@ function StatusPanel({ place }: { place: Schemas['AdminPlace'] }) {
           )
         })}
       </div>
-      {place.status === 'PENDING' && (
-        <p className="mt-2 text-[12px] text-ink-muted">Không tự duyệt được địa điểm do chính mình tạo — cần một quản trị viên khác duyệt.</p>
-      )}
       {pending && (
         <Dialog
           open

@@ -8,7 +8,7 @@ Dành cho thành viên mới và người test: web có những màn nào, đi q
 |---|---|---|
 | Dữ liệu minh họa, không cần backend | `npm run dev:mock` → http://localhost:5173 | Email bất kỳ, mã `123456`. Admin: `admin@gowithbae.test`, mã `123456`, mã Authenticator `654321` |
 | Backend thật trên máy | `npm run dev` (proxy `/api` → `localhost:8080`) | Mã OTP gửi qua SMTP cấu hình ở backend |
-| Cả hệ thống bằng Docker | http://localhost:8081 (xem backend `docs/DEVELOPMENT.md` §9–10) | Mã OTP xem ở hộp thư giả http://localhost:8025; admin cần cài Google Authenticator qua link kích hoạt |
+| Cả hệ thống bằng Docker | http://localhost:8081 (`docker compose up -d --build` trong `gowithbae-be/docker`, xem backend `docs/DEVELOPMENT.md` §9–10) | Mã OTP xem ở hộp thư giả http://localhost:8025; admin cần cài Google Authenticator qua link kích hoạt |
 
 Dữ liệu minh họa nằm trong bộ nhớ trình duyệt: tải lại trang là về trạng thái ban đầu.
 
@@ -77,7 +77,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 ### 3.3 Duyệt địa điểm — điều cần biết
 
 - Vòng đời: **Nháp → Chờ duyệt → Đang hiển thị → Tạm ẩn / Ngừng hoạt động → Khôi phục (về Chờ duyệt)**. Chỉ sửa được khi Nháp hoặc Chờ duyệt.
-- **Không tự duyệt được nơi do mình tạo** (RULE-21), kể cả admin. Cần một admin khác bấm **Duyệt & hiển thị**.
+- Admin (`SUPER_ADMIN`) **tự duyệt được** nơi do chính mình tạo (OQ-18 đã chốt). Nhật ký vẫn ghi ai duyệt.
 - Ô giá phải chọn "Đã biết giá" hoặc "Chưa rõ giá"; để "Chưa ghi" thì chưa gửi duyệt được.
 
 ## 4. Code ở đâu

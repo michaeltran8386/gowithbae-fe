@@ -11,6 +11,7 @@ import { formatDateTime } from '../lib/format.ts'
 import { useNow } from '../hooks/useNow.ts'
 import { BUDGETS } from '../lib/budgets.ts'
 import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
+import { ChoiceCallout } from '../components/choice/InviteEntry.tsx'
 import { PrimaryButton } from '../components/ui/Button.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 
@@ -22,6 +23,7 @@ export function DiscoverPage() {
       <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
       {state.status === 'member' && <ContinueSection />}
       <SearchHero />
+      <ChoiceCallout />
       <Collections />
     </div>
   )
