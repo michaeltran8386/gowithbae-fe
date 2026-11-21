@@ -9,6 +9,7 @@ import { VN_TZ, priceForTwo } from '../lib/format.ts'
 import { useNow } from '../hooks/useNow.ts'
 import { NotReservedNotice, PlanStatusBadge } from '../components/plan/PlanBits.tsx'
 import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
+import { PlanInvitePanel } from '../components/plan/PlanInvitePanel.tsx'
 import { PlaceMedia } from '../components/place/PlaceMedia.tsx'
 import { ConfirmDialog } from '../components/ui/Dialog.tsx'
 import { ButtonLink, DangerButton, SecondaryButton } from '../components/ui/Button.tsx'
@@ -126,6 +127,8 @@ function PlanDetail({ plan }: { plan: Schemas['DatePlan'] }) {
         </section>
 
         <NotReservedNotice />
+
+        {editable && !plan.choiceSessionId && <PlanInvitePanel planId={plan.id} />}
 
         {plan.status !== 'CANCELLED' && (
           <div className="flex flex-wrap gap-2">

@@ -3,11 +3,12 @@ import { Link, useBlocker, useSearchParams } from 'react-router'
 import { CircleCheck } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { problemMessage } from '../api/problem.ts'
-import { useSavedList } from '../hooks/saved.ts'
+import { useSavedList, useSavedLists } from '../hooks/saved.ts'
 import { useCreateChoiceSession } from '../hooks/choice.ts'
 import { useIdempotencyKey } from '../lib/idempotency.ts'
 import { priceForTwo } from '../lib/format.ts'
 import { ShareLinkPanel } from '../components/choice/ShareLinkPanel.tsx'
+import { InviteListPicker, MIN_INVITE_PLACES, canInviteFrom } from '../components/choice/InviteEntry.tsx'
 import { ConfirmDialog } from '../components/ui/Dialog.tsx'
 import { ButtonLink, PrimaryButton } from '../components/ui/Button.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
@@ -21,15 +22,41 @@ export function CreateInvitePage() {
   const listId = params.get('listId') ?? ''
   const list = useSavedList(listId)
 
-  if (!listId)
-    return (
-      <EmptyState title="Chọn danh sách để mời cùng chọn" action={<ButtonLink to="/saved">Mở Đã lưu</ButtonLink>}>
-        Lời mời được tạo từ các địa điểm bạn đã lưu.
-      </EmptyState>
-    )
+  if (!listId) return <PickList />
   if (list.isPending) return <Skeleton className="h-64" />
   if (list.isError) return <ErrorState error={list.error} onRetry={() => list.refetch()} />
   return <CreateInvite list={list.data} />
+}
+
+/** Chưa chọn danh sách: hiện luôn các danh sách để chọn thay vì bắt quay về Đã lưu. */
+function PickList() {
+  const lists = useSavedLists()
+  return (
+    <>
+      <h1 className="text-2xl font-bold">Mời người ấy cùng chọn</h1>
+      <p className="mt-1 text-ink-muted">
+        Lời mời gửi 2–5 nơi trong một danh sách đã lưu. Chọn danh sách có ít nhất {MIN_INVITE_PLACES} địa điểm.
+      </p>
+      <div className="mt-5">
+        {lists.isPending ? (
+          <Skeleton className="h-40" />
+        ) : lists.isError ? (
+          <ErrorState error={lists.error} onRetry={() => lists.refetch()} />
+        ) : lists.data.length === 0 ? (
+          <EmptyState title="Bạn chưa lưu địa điểm nào" action={<ButtonLink to="/">Khám phá địa điểm</ButtonLink>}>
+            Bấm biểu tượng trái tim trên thẻ địa điểm để lưu ít nhất {MIN_INVITE_PLACES} nơi vào một danh sách, rồi quay lại đây.
+          </EmptyState>
+        ) : (
+          <>
+            <InviteListPicker lists={lists.data} />
+            {!lists.data.some(canInviteFrom) && (
+              <p className="mt-3 text-sm text-attention">Chưa danh sách nào đủ {MIN_INVITE_PLACES} nơi. Lưu thêm địa điểm rồi quay lại.</p>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  )
 }
 
 function CreateInvite({ list }: { list: Schemas['SavedListDetail'] }) {

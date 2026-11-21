@@ -8,6 +8,7 @@ import { session } from '../api/client.ts'
 import { MOCK_ADMIN_TOKEN } from '../mocks/admin.ts'
 import { catalogDb, mockValidateCsv } from '../mocks/adminCatalog.ts'
 import { renderApp } from './render.tsx'
+import { ApiError, adminProblemMessage, problemMessage } from '../api/problem.ts'
 
 function renderAdmin(path: string) {
   session.setAccessToken(MOCK_ADMIN_TOKEN)
@@ -60,14 +61,23 @@ describe('Địa điểm', () => {
   })
 })
 
-describe('Không tự duyệt (RULE-21)', () => {
-  it('duyệt địa điểm do chính mình tạo thì hiện đúng lý do từ server', async () => {
+describe('Tự duyệt (OQ-18: SUPER_ADMIN được tự duyệt)', () => {
+  it('quản trị viên duyệt được địa điểm do chính mình tạo', async () => {
     const pending = catalogDb.places.find((p) => p.status === 'PENDING')!
     pending.createdBy = '0000000a-0000-4000-8000-000000000001'
     const { user } = renderAdmin(`/admin/places/${pending.id}`)
     await user.click(await screen.findByRole('button', { name: 'Duyệt & hiển thị' }))
-    expect(await screen.findByText('Không được tự duyệt địa điểm do chính mình tạo')).toBeInTheDocument()
-    expect(pending.status).toBe('PENDING')
+    expect(await screen.findByRole('button', { name: 'Tạm ẩn' })).toBeInTheDocument()
+    expect(pending.status).toBe('PUBLISHED')
+  })
+})
+
+describe('Câu lỗi trang quản trị', () => {
+  it('403/404 hiện lý do của server; web người dùng vẫn dùng câu chung', () => {
+    const forbidden = new ApiError({ status: 403, title: 'Forbidden', detail: 'Không có quyền thực hiện thao tác này' })
+    expect(adminProblemMessage(forbidden)).toBe('Không có quyền thực hiện thao tác này')
+    expect(problemMessage(forbidden)).toBe('Không tìm thấy nội dung này.')
+    expect(adminProblemMessage(new ApiError({ status: 404, title: 'Not Found' }))).toBe('Không tìm thấy nội dung này.')
   })
 })
 

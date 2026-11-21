@@ -8,7 +8,7 @@ Dành cho thành viên mới và người test: web có những màn nào, đi q
 |---|---|---|
 | Dữ liệu minh họa, không cần backend | `npm run dev:mock` → http://localhost:5173 | Email bất kỳ, mã `123456`. Admin: `admin@gowithbae.test`, mã `123456`, mã Authenticator `654321` |
 | Backend thật trên máy | `npm run dev` (proxy `/api` → `localhost:8080`) | Mã OTP gửi qua SMTP cấu hình ở backend |
-| Cả hệ thống bằng Docker | http://localhost:8081 (xem backend `docs/DEVELOPMENT.md` §9–10) | Mã OTP xem ở hộp thư giả http://localhost:8025; admin cần cài Google Authenticator qua link kích hoạt |
+| Cả hệ thống bằng Docker | http://localhost:8081 (`docker compose up -d --build` trong `gowithbae-be/docker`, xem backend `docs/DEVELOPMENT.md` §9–10) | Mã OTP xem ở hộp thư giả http://localhost:8025; admin cần cài Google Authenticator qua link kích hoạt |
 
 Dữ liệu minh họa nằm trong bộ nhớ trình duyệt: tải lại trang là về trạng thái ban đầu.
 
@@ -28,7 +28,7 @@ Dữ liệu minh họa nằm trong bộ nhớ trình duyệt: tải lại trang 
 ### 2.3 Lưu và rủ người ấy cùng chọn
 
 1. Ở chi tiết địa điểm bấm **Lưu** → chọn hoặc tạo danh sách.
-2. **Đã lưu** (`/saved`) → mở một danh sách → **"Mời người ấy cùng chọn"** (cần ≥ 2 nơi đang hiển thị).
+2. Bấm **"Rủ người ấy cùng chọn"** ở trang Khám phá hoặc Buổi hẹn, hoặc nút **"Mời cùng chọn"** trên thẻ danh sách ở **Đã lưu**. Cần một danh sách có **ít nhất 2 nơi**; trang chọn danh sách nói rõ danh sách nào còn thiếu bao nhiêu nơi.
 3. **Tạo lời mời** (`/choice/new`): chọn 2–5 nơi → **Tạo lời mời** → copy link. Link chỉ hiện một lần.
 4. Người ấy mở link (`/invite/:token`), không cần tài khoản → **Tham gia chọn** → bấm Thích / Bỏ qua từng nơi (`/choice/:id`). Mỗi link nhận một người.
 5. Bạn bỏ phiếu → **Kết quả** (`/choice/:id/results`) → **"Chốt … và tạo kế hoạch"**. Kế hoạch tạo ra được chia sẻ cho người ấy.
@@ -40,7 +40,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 - **Buổi hẹn** (`/plans`): sắp tới / đã qua. **Tạo kế hoạch** (`/plans/new`): chọn nơi, ngày giờ, ghi chú. Hệ thống cảnh báo nếu nơi đóng cửa giờ đó.
 - **Chi tiết** (`/plans/:id`): thêm vào lịch (`.ics`), chỉ đường, sửa, hủy. Người nhận chỉ xem.
 - Sau giờ hẹn trang chủ hiện lời nhắc "Đi chưa?".
-- Kế hoạch tạo tay ở đây **chỉ mình bạn thấy**; muốn có người cùng xem thì đi qua luồng cùng chọn (2.3).
+- **Mời người ấy xem kế hoạch** (kế hoạch tạo tay, sắp tới): khung "Mời người ấy" ở chi tiết kế hoạch → **Tạo link mời** → gửi link (chỉ hiện một lần). Người ấy mở `/plan-invite/:token`, không cần tài khoản, thấy giờ và địa điểm (không thấy ghi chú của bạn), bấm **Mình sẽ đi** / **Không đi được** (có thể ghi tên). Bạn nhận thông báo và thấy câu trả lời ngay trong khung. **Tạo link mới** làm link cũ mất hiệu lực; **Thu hồi link** để ngừng chia sẻ.
 
 ### 2.5 Tài khoản, thông báo, hỗ trợ, trang tĩnh
 
@@ -77,7 +77,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 ### 3.3 Duyệt địa điểm — điều cần biết
 
 - Vòng đời: **Nháp → Chờ duyệt → Đang hiển thị → Tạm ẩn / Ngừng hoạt động → Khôi phục (về Chờ duyệt)**. Chỉ sửa được khi Nháp hoặc Chờ duyệt.
-- **Không tự duyệt được nơi do mình tạo** (RULE-21), kể cả admin. Cần một admin khác bấm **Duyệt & hiển thị**.
+- Admin (`SUPER_ADMIN`) **tự duyệt được** nơi do chính mình tạo (OQ-18 đã chốt). Nhật ký vẫn ghi ai duyệt.
 - Ô giá phải chọn "Đã biết giá" hoặc "Chưa rõ giá"; để "Chưa ghi" thì chưa gửi duyệt được.
 
 ## 4. Code ở đâu
@@ -99,6 +99,6 @@ Trang quản trị dùng `adminProblemMessage` (hiện lý do thật của lỗi
 
 ## 5. Còn thiếu
 
-- Chưa có cách mời người khác từ kế hoạch tạo tay; nút "Cùng chọn" mới chỉ nằm trong trang chi tiết danh sách đã lưu (đang cân nhắc thêm ở Khám phá, Buổi hẹn, Đã lưu).
+- Người nhận link mời xem kế hoạch chưa nhận thông báo khi chủ đổi giờ/hủy (họ thấy bản mới mỗi lần mở lại link).
 - Bản đồ thật, đổi địa điểm trong màn sửa kế hoạch.
 - Chưa thử trên Safari iOS / Chrome Android máy thật.

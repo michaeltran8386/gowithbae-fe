@@ -6,6 +6,7 @@ import { resetDb } from '../mocks/db.ts'
 import { resetAdminDb } from '../mocks/admin.ts'
 import { resetCatalogDb } from '../mocks/adminCatalog.ts'
 import { resetSupportDb } from '../mocks/adminSupport.ts'
+import { resetPlanInvites } from '../mocks/planInvites.ts'
 
 // Mock có độ trễ 250–300 ms; khi máy bận, 1 giây mặc định gây test chập chờn.
 configure({ asyncUtilTimeout: 5000 }) // cả bộ chạy song song trên máy chậm: route lazy đầu tiên có thể mất >3 giây
@@ -18,6 +19,7 @@ afterEach(() => {
   resetAdminDb()
   resetCatalogDb()
   resetSupportDb()
+  resetPlanInvites()
   localStorage.clear()
 })
 afterAll(() => server.close())

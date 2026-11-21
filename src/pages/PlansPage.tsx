@@ -39,7 +39,15 @@ export function PlansPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold md:text-3xl">Buổi hẹn</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold md:text-3xl">Buổi hẹn</h1>
+        <ButtonLink to="/choice/new" variant="secondary" icon={<Users size={18} aria-hidden="true" />}>
+          Rủ người ấy cùng chọn
+        </ButtonLink>
+      </div>
+      <p className="mt-1 text-sm text-ink-muted">
+        Muốn người ấy cùng xem kế hoạch? Gửi vài nơi đã lưu để hai bạn cùng chọn; chốt xong kế hoạch được chia sẻ cho người ấy.
+      </p>
 
       {due.length > 0 && (
         <div className="mt-5 grid gap-3 md:grid-cols-2">

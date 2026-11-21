@@ -1,7 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type Schemas } from '../api/client.ts'
-import { unwrap } from '../api/problem.ts'
+import { isStatus, unwrap } from '../api/problem.ts'
 import { track } from '../lib/analytics.ts'
 import { readJson, readStorage, writeJson } from '../lib/storage.ts'
 
@@ -141,6 +141,70 @@ export async function downloadCalendar(planId: string) {
   const a = document.createElement('a')
   a.href = url
   a.download = `buoi-hen-${planId.slice(-6)}.ics`
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+// ───────── Mời người ấy xem kế hoạch (link riêng, không cần tài khoản) ─────────
+
+/** Trạng thái link mời của chủ kế hoạch; null khi chưa có link đang hiệu lực (server trả 404). */
+export function usePlanInvite(planId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['date-plans', planId, 'invite'],
+    enabled,
+    queryFn: async () => {
+      try {
+        return await unwrap(api.GET('/date-plans/{planId}/invite', { params: { path: { planId } } }))
+      } catch (e) {
+        if (isStatus(e, 404)) return null
+        throw e
+      }
+    },
+  })
+}
+
+export function usePlanInviteMutations(planId: string) {
+  const qc = useQueryClient()
+  const refresh = () => qc.invalidateQueries({ queryKey: ['date-plans', planId, 'invite'] })
+  return {
+    create: useMutation({
+      mutationFn: () => unwrap(api.POST('/date-plans/{planId}/invite', { params: { path: { planId } } })),
+      onSuccess: refresh,
+    }),
+    revoke: useMutation({
+      mutationFn: () => unwrap(api.DELETE('/date-plans/{planId}/invite', { params: { path: { planId } } })),
+      onSuccess: () => qc.setQueryData(['date-plans', planId, 'invite'], null),
+    }),
+  }
+}
+
+/** Người nhận xem kế hoạch qua link (công khai). */
+export function usePlanInviteView(token: string) {
+  return useQuery({
+    queryKey: ['plan-invites', token],
+    queryFn: () => unwrap(api.GET('/plan-invites/{inviteToken}', { params: { path: { inviteToken: token } } })),
+    retry: false,
+  })
+}
+
+export function useRespondPlanInvite(token: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Schemas['PlanInviteRespond']) =>
+      unwrap(api.PUT('/plan-invites/{inviteToken}/response', { params: { path: { inviteToken: token } }, body })),
+    onSuccess: (view) => qc.setQueryData(['plan-invites', token], view),
+  })
+}
+
+/** Tệp .ics cho người nhận (không có ghi chú riêng của chủ). */
+export async function downloadInviteCalendar(token: string) {
+  const blob = await unwrap(
+    api.GET('/plan-invites/{inviteToken}/calendar.ics', { params: { path: { inviteToken: token } }, parseAs: 'blob' }),
+  )
+  const url = URL.createObjectURL(blob as Blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'buoi-hen.ics'
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

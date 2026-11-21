@@ -16,7 +16,7 @@ npm run dev:mock   # dữ liệu minh họa (MSW), không cần backend — mã 
 npm run dev        # gọi backend thật: /api được proxy tới http://localhost:8080
 ```
 
-Chạy cả hệ thống bằng Docker (web ở http://localhost:8081): xem `gowithbae-be/docs/DEVELOPMENT.md` §9–10.
+Chạy cả hệ thống bằng Docker Compose (web ở http://localhost:8081): trong `gowithbae-be/docker` chạy `docker compose up -d --build`, xem `gowithbae-be/docs/DEVELOPMENT.md` §9–10.
 
 | Lệnh | Việc |
 |---|---|
