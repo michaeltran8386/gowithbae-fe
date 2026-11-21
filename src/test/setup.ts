@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from '../mocks/server.ts'
 import { resetDb } from '../mocks/db.ts'
 import { resetAdminDb } from '../mocks/admin.ts'
+import { resetCatalogDb } from '../mocks/adminCatalog.ts'
 
 // Mock có độ trễ 250–300 ms; khi máy bận, 1 giây mặc định gây test chập chờn.
 configure({ asyncUtilTimeout: 3000 })
@@ -14,6 +15,7 @@ afterEach(() => {
   server.resetHandlers()
   resetDb()
   resetAdminDb()
+  resetCatalogDb()
   localStorage.clear()
 })
 afterAll(() => server.close())

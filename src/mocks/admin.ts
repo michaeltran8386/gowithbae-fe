@@ -5,6 +5,7 @@
 import { http, HttpResponse, delay } from 'msw'
 import type { Schemas } from '../api/client.ts'
 import { MOCK_OTP } from './data.ts'
+import { catalogHandlers } from './adminCatalog.ts'
 
 const API = '*/api/v1'
 const json = HttpResponse.json
@@ -109,7 +110,8 @@ export const adminHandlers = [
   http.get(`${API}/admin/reports/export.csv`, ({ request }) =>
     isAdmin(request) ? new HttpResponse('metric,value\nactiveMembers,128\n', { headers: { 'Content-Type': 'text/csv' } }) : problem(401, 'Chưa đăng nhập'),
   ),
-  http.get(`${API}/admin/places`, ({ request }) => (isAdmin(request) ? json({ items: [], page: page(0) } satisfies Schemas['AdminPlacePage']) : problem(401, 'Chưa đăng nhập'))),
+  // Địa điểm, CSV, nhãn, bộ sưu tập: src/mocks/adminCatalog.ts
+  ...catalogHandlers,
   http.get(`${API}/admin/place-reports`, ({ request }) => (isAdmin(request) ? json({ items: [], page: page(0) }) : problem(401, 'Chưa đăng nhập'))),
   http.get(`${API}/admin/support-tickets`, ({ request }) => (isAdmin(request) ? json({ items: [], page: page(0) }) : problem(401, 'Chưa đăng nhập'))),
 
