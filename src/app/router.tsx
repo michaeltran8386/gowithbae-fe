@@ -34,6 +34,10 @@ export const routes: RouteObject[] = [
       { path: 'choice/:sessionId', lazy: page(() => import('../pages/ChoiceVotePage.tsx'), 'ChoiceVotePage') }, // S-11 FR-12/14
       { path: 'choice/:sessionId/results', lazy: page(() => import('../pages/ChoiceResultsPage.tsx'), 'ChoiceResultsPage') }, // S-12 FR-13
       { path: 'plans/:planId', lazy: page(() => import('../pages/PlanDetailPage.tsx'), 'PlanDetailPage') }, // S-15 FR-16..18
+      { path: 'faq', lazy: page(() => import('../pages/StaticPages.tsx'), 'FaqPage') },
+      { path: 'terms', lazy: page(() => import('../pages/StaticPages.tsx'), 'TermsPage') },
+      { path: 'privacy', lazy: page(() => import('../pages/StaticPages.tsx'), 'PrivacyPage') },
+      { path: 'contact', lazy: page(() => import('../pages/StaticPages.tsx'), 'ContactPage') },
       {
         element: <Protected />,
         children: [
@@ -59,14 +63,37 @@ export const routes: RouteObject[] = [
     children: [
       { path: 'login', lazy: page(() => import('../pages/LoginPage.tsx'), 'LoginPage') }, // S-06 FR-07
       { path: 'invite/:inviteToken', lazy: page(() => import('../pages/InvitePage.tsx'), 'InvitePage') }, // S-10 FR-11
+      // Kích hoạt Google Authenticator cho tài khoản quản trị (link dùng 1 lần) — chưa đăng nhập
+      { path: 'admin/activate/:token', lazy: page(() => import('../pages/admin/ActivateMfaPage.tsx'), 'ActivateMfaPage') },
     ],
   },
   {
-    // F2 — chưa lên lịch (chờ OQ-15/18/19/20)
+    // Trang quản trị — chỉ SUPER_ADMIN (AdminLayout kiểm tra; quyền thật ở server)
     path: 'admin',
     element: <AdminLayout />,
     errorElement: <RouteErrorPage />,
-    children: [{ path: '*?', lazy: page(() => import('../pages/admin/AdminPendingPage.tsx'), 'AdminPendingPage') }],
+    children: [
+      { index: true, lazy: page(() => import('../pages/admin/AdminDashboardPage.tsx'), 'AdminDashboardPage') },
+      { path: 'users', lazy: page(() => import('../pages/admin/AdminUsersPage.tsx'), 'AdminUsersPage') },
+      { path: 'users/:userId', lazy: page(() => import('../pages/admin/AdminUserDetailPage.tsx'), 'AdminUserDetailPage') },
+      { path: 'audit', lazy: page(() => import('../pages/admin/AdminAuditPage.tsx'), 'AdminAuditPage') },
+      { path: 'places', lazy: page(() => import('../pages/admin/AdminPlacesPage.tsx'), 'AdminPlacesPage') },
+      { path: 'places/new', lazy: page(() => import('../pages/admin/AdminPlaceEditPage.tsx'), 'AdminPlaceEditPage') },
+      { path: 'places/:placeId', lazy: page(() => import('../pages/admin/AdminPlaceEditPage.tsx'), 'AdminPlaceEditPage') },
+      { path: 'imports', lazy: page(() => import('../pages/admin/AdminImportsPage.tsx'), 'AdminImportsPage') },
+      { path: 'imports/:batchId', lazy: page(() => import('../pages/admin/AdminImportsPage.tsx'), 'AdminImportBatchPage') },
+      { path: 'taxonomies', lazy: page(() => import('../pages/admin/AdminTaxonomiesPage.tsx'), 'AdminTaxonomiesPage') },
+      { path: 'collections', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionsPage') },
+      { path: 'collections/new', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionEditPage') },
+      { path: 'collections/:collectionId', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionEditPage') },
+      { path: 'content', lazy: page(() => import('../pages/admin/AdminContentPage.tsx'), 'AdminContentPage') },
+      { path: 'notifications', lazy: page(() => import('../pages/admin/AdminNotificationsPage.tsx'), 'AdminNotificationsPage') },
+      { path: 'place-reports', lazy: page(() => import('../pages/admin/AdminPlaceReportsPage.tsx'), 'AdminPlaceReportsPage') },
+      { path: 'place-reports/:reportId', lazy: page(() => import('../pages/admin/AdminPlaceReportsPage.tsx'), 'AdminPlaceReportDetailPage') },
+      { path: 'tickets', lazy: page(() => import('../pages/admin/AdminTicketsPage.tsx'), 'AdminTicketsPage') },
+      { path: 'tickets/:ticketId', lazy: page(() => import('../pages/admin/AdminTicketsPage.tsx'), 'AdminTicketDetailPage') },
+      { path: '*', lazy: page(() => import('../pages/NotFoundPage.tsx'), 'NotFoundPage') },
+    ],
   },
 ]
 

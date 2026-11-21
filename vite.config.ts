@@ -13,5 +13,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Test luồng gõ nhiều ô chạy song song trên máy chậm dễ vượt 5 giây mặc định.
+    testTimeout: 20_000,
   },
 })

@@ -2,6 +2,8 @@
 
 Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · openapi-fetch · TanStack Query.
 
+**Luồng chức năng và hướng dẫn dùng (đọc đầu tiên):** [docs/FLOWS.md](docs/FLOWS.md)
+
 **Yêu cầu sản phẩm:** [SRS hợp nhất G1](docs/SRS.md) — cùng nội dung với bản trong repo backend.
 
 **Hướng dẫn làm việc:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md) · **Phân tích, kiến trúc, UX/UI:** [docs/frontend/](docs/frontend/README.md)
@@ -13,6 +15,8 @@ npm install
 npm run dev:mock   # dữ liệu minh họa (MSW), không cần backend — mã đăng nhập thử 123456
 npm run dev        # gọi backend thật: /api được proxy tới http://localhost:8080
 ```
+
+Chạy cả hệ thống bằng Docker (web ở http://localhost:8081): xem `gowithbae-be/docs/DEVELOPMENT.md` §9–10.
 
 | Lệnh | Việc |
 |---|---|
@@ -34,7 +38,7 @@ npm run dev        # gọi backend thật: /api được proxy tới http://loca
 | Phase 3–4 | UX (luồng, màn hình), design system, chọn hướng UI B+ | ✅ Xong (Gate 2 đã duyệt) |
 | Phase 5 | Triển khai F1, dựa trên bản Stitch đã chỉnh lại | ✅ Xong |
 | Phase 6 | QA, accessibility, responsive, đối chiếu yêu cầu | ✅ Xong, chờ Gate 3 |
-| F2 Quản trị | 11 mục FR-23…31, 33, 34 | ⏸ Chưa làm (A-02), chờ OQ-15/18/19/20 |
+| F2 Quản trị | Trang `/admin` cho chủ dự án (SUPER_ADMIN) | ✅ Xong trên nhánh `feature/admin-ui`, xem mục Trang quản trị |
 
 ### Phạm vi đã có
 
@@ -44,6 +48,24 @@ npm run dev        # gọi backend thật: /api được proxy tới http://loca
 | Tài khoản | S-06 Đăng nhập OTP, S-16 Tài khoản, S-17 Thông báo, S-18/19/20 Hỗ trợ |
 | Lưu & cùng chọn | S-07/08 Đã lưu, S-09 Tạo lời mời, S-10 Link mời cho khách (không cần đăng nhập), S-11 Bỏ phiếu, S-12 Kết quả + chốt |
 | Buổi hẹn | S-13 Buổi hẹn, S-14 Tạo kế hoạch, S-15 Chi tiết (.ics, chỉ đường, sửa/hủy), lời nhắc “Đi chưa?” |
+
+### Trang quản trị
+
+Chỉ tài khoản `SUPER_ADMIN` vào được. Đăng nhập 2 bước: OTP email, sau đó mã Google Authenticator. Admin cài Authenticator qua link kích hoạt dùng 1 lần (`/admin/activate/:token`). Admin đầu tiên tạo bằng lệnh bootstrap của backend, xem `gowithbae-be/docs/DEVELOPMENT.md` §10.
+
+| Nhóm | Màn |
+|---|---|
+| Tổng quan | `/admin`: số liệu, xuất CSV, việc cần xử lý |
+| Người dùng | `/admin/users`, `/admin/users/:id`: tạo, khóa/mở, vai trò, phiên đăng nhập, hoạt động |
+| Địa điểm | `/admin/places`, `/admin/places/:id`, `/admin/imports`: sửa, ảnh, duyệt, nhập CSV |
+| Danh mục | `/admin/taxonomies`, `/admin/collections` |
+| Nội dung web | `/admin/content`, `/admin/notifications` |
+| Hỗ trợ | `/admin/place-reports`, `/admin/tickets` |
+| Hệ thống | `/admin/audit` |
+
+Phía người dùng thêm `/faq`, `/terms`, `/privacy`, `/contact`; tiêu đề trang chủ, banner và chân trang lấy từ “Nội dung web”.
+
+Thử trên dữ liệu minh họa (`npm run dev:mock`): đăng nhập `admin@gowithbae.test`, mã OTP `123456`, mã Authenticator `654321`.
 
 ### Mobile
 

@@ -4,6 +4,7 @@ import { CalendarClock, ChevronRight, MapPin, Search, Users } from 'lucide-react
 import type { Schemas } from '../api/client.ts'
 import { useAuth } from '../app/auth.tsx'
 import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
+import { useSiteContent } from '../hooks/adminSupport.ts'
 import { useMyChoiceSessions } from '../hooks/choice.ts'
 import { isReminderDue, useDatePlans, useDismissedReminders } from '../hooks/plans.ts'
 import { formatDateTime } from '../lib/format.ts'
@@ -97,13 +98,14 @@ function SearchHero() {
   const [areaId, setAreaId] = useState('')
   const [budget, setBudget] = useState('')
   const activities = (taxonomies.data ?? []).filter((t) => t.group === 'ACTIVITY' && t.status === 'ACTIVE')
+  const hero = useSiteContent().data?.homeHero
 
   return (
     <section aria-labelledby="search-heading">
       <h2 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">
-        Tìm nơi hẹn hò
+        {hero?.title || 'Tìm nơi hẹn hò'}
       </h2>
-      <p className="mt-1 text-ink-muted">Lọc theo khu vực, ngân sách cho hai người và việc hai bạn muốn làm.</p>
+      <p className="mt-1 text-ink-muted">{hero?.subtitle || 'Lọc theo khu vực, ngân sách cho hai người và việc hai bạn muốn làm.'}</p>
       <form
         role="search"
         className="mt-5 grid gap-2 rounded-block border border-line bg-white p-2 md:grid-cols-[1.4fr_1fr_1fr_auto]"

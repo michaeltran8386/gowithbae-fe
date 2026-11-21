@@ -1,7 +1,8 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
-import { Bell, CalendarHeart, Compass, Heart as HeartIcon, UserRound } from 'lucide-react'
+import { Bell, CalendarHeart, Compass, Heart as HeartIcon, Megaphone, UserRound } from 'lucide-react'
 import { useAuth } from '../app/auth.tsx'
 import { useNotifications } from '../hooks/account.ts'
+import { useSiteContent } from '../hooks/adminSupport.ts'
 import { CompareTray } from '../components/place/Compare.tsx'
 import { Logo } from '../components/ui/Logo.tsx'
 import { MockDataBanner } from './MockDataBanner.tsx'
@@ -14,6 +15,13 @@ const NAV = [
   { to: '/account', label: 'Tài khoản', icon: UserRound },
 ]
 
+const FOOTER_LINKS = [
+  { to: '/faq', label: 'Câu hỏi thường gặp' },
+  { to: '/terms', label: 'Điều khoản' },
+  { to: '/privacy', label: 'Quyền riêng tư' },
+  { to: '/contact', label: 'Liên hệ' },
+]
+
 /** Trang có action bar đáy riêng thì ẩn bottom nav trên mobile. */
 const ACTION_BAR_ROUTES = [/^\/places\/[^/]+$/, /^\/choice\/(?!new$)[^/]+$/]
 
@@ -24,6 +32,7 @@ export function AppLayout() {
   const notifications = useNotifications(member)
   const unread = notifications.data?.unreadCount ?? 0
   const hideBottomNav = ACTION_BAR_ROUTES.some((r) => r.test(pathname))
+  const site = useSiteContent().data
 
   return (
     <div className="min-h-dvh pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
@@ -31,6 +40,7 @@ export function AppLayout() {
         Bỏ qua đến nội dung chính
       </a>
       <MockDataBanner />
+      {site?.homeBanner.enabled && site.homeBanner.text && <SiteBanner text={site.homeBanner.text} linkUrl={site.homeBanner.linkUrl} />}
       <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
           <Logo />
@@ -79,8 +89,15 @@ export function AppLayout() {
 
       <CompareTray />
 
-      <footer className="mx-auto hidden max-w-6xl px-6 py-10 text-[13px] text-ink-muted md:block">
-        <span translate="no">GoWithBae</span> · Thông tin địa điểm được đội ngũ kiểm tra; giá và giờ có thể thay đổi, hãy kiểm tra trước khi đi.
+      <footer className="mx-auto max-w-6xl px-4 py-8 text-[13px] text-ink-muted md:px-6 md:py-10">
+        <nav aria-label="Thông tin" className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
+          {FOOTER_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} className="hover:text-ink hover:underline">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        <p>{site?.footer.text || 'Thông tin địa điểm được đội ngũ kiểm tra; giá và giờ có thể thay đổi, hãy kiểm tra trước khi đi.'}</p>
       </footer>
 
       {!hideBottomNav && (
@@ -106,6 +123,32 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
+      )}
+    </div>
+  )
+}
+
+/** Banner do quản trị viên bật trong "Nội dung web". Link ngoài mở tab mới; link nội bộ đi bằng router. */
+function SiteBanner({ text, linkUrl }: { text: string; linkUrl?: string | null }) {
+  const body = (
+    <>
+      <Megaphone size={16} className="shrink-0" aria-hidden="true" />
+      <span>{text}</span>
+    </>
+  )
+  const cls = 'mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 text-sm md:px-6'
+  return (
+    <div role="region" aria-label="Thông báo" className="bg-peach-50 text-ink">
+      {linkUrl?.startsWith('/') ? (
+        <Link to={linkUrl} className={`${cls} hover:underline`}>
+          {body}
+        </Link>
+      ) : linkUrl && /^https?:\/\//.test(linkUrl) ? (
+        <a href={linkUrl} target="_blank" rel="noreferrer" className={`${cls} hover:underline`}>
+          {body}
+        </a>
+      ) : (
+        <p className={cls}>{body}</p>
       )}
     </div>
   )

@@ -20,7 +20,7 @@ const INTENT_REASON: Record<string, string> = {
 
 /** S-06 Đăng nhập bằng email + mã một lần — FR-07, RULE-16 (phương thức là PROP, OQ-06). */
 export function LoginPage() {
-  const { state, actions } = useAuth()
+  const { state, actions, meta } = useAuth()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const returnTo = safeReturnTo(params.get('returnTo'))
@@ -30,6 +30,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [staffCode, setStaffCode] = useState('')
+  const [needsStaffCode, setNeedsStaffCode] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
@@ -39,13 +40,16 @@ export function LoginPage() {
   }, [countdown])
 
   const destination = intent ? `${returnTo}${returnTo.includes('?') ? '&' : '?'}intent=${encodeURIComponent(intent)}` : returnTo
-  if (state.status === 'member') return <Navigate to={destination} replace />
+  // Quản trị viên đăng nhập không kèm returnTo thì vào thẳng trang quản trị.
+  if (state.status === 'member') return <Navigate to={meta.isAdmin && destination === '/' ? '/admin' : destination} replace />
 
   const sendCode = () =>
     requestOtp.mutate(email.trim(), {
       onSuccess: () => {
         setStep('code')
         setCode('')
+        setStaffCode('')
+        setNeedsStaffCode(false)
         setCountdown(RESEND_SECONDS)
       },
       onError: (e) => {
@@ -54,7 +58,16 @@ export function LoginPage() {
     })
 
   const emailError = requestOtp.error ? (fieldErrors(requestOtp.error).email ?? problemMessage(requestOtp.error)) : undefined
-  const codeError = verifyOtp.error ? (fieldErrors(verifyOtp.error).code ?? problemMessage(verifyOtp.error)) : undefined
+  const verifyCode = verifyOtp.error instanceof ApiError ? verifyOtp.error.problem.code : undefined
+  // Tài khoản quản trị: OTP email đúng nhưng cần thêm mã Authenticator — không phải lỗi của ô mã email.
+  const codeError =
+    verifyOtp.error && verifyCode !== 'STAFF_CODE_REQUIRED' && verifyCode !== 'MFA_NOT_ENROLLED' && !needsStaffCode
+      ? (fieldErrors(verifyOtp.error).code ?? problemMessage(verifyOtp.error))
+      : undefined
+  const staffError =
+    needsStaffCode && verifyOtp.error && verifyCode !== 'STAFF_CODE_REQUIRED'
+      ? 'Mã Authenticator không đúng hoặc đã dùng. Đợi mã mới rồi thử lại.'
+      : undefined
 
   return (
     <div className="rounded-block border border-line bg-white p-5 md:p-8">
@@ -101,11 +114,15 @@ export function LoginPage() {
           onSubmit={(e) => {
             e.preventDefault()
             verifyOtp.mutate(
-              { email: email.trim(), code, ...(staffCode.trim() ? { staffCode: staffCode.trim() } : {}) },
+              { email: email.trim(), code, ...(needsStaffCode ? { staffCode } : {}) },
               {
                 onSuccess: (token) => {
                   actions.signIn(token)
-                  navigate(destination, { replace: true })
+                  const isAdmin = token.user.roles.includes('SUPER_ADMIN')
+                  navigate(isAdmin && destination === '/' ? '/admin' : destination, { replace: true })
+                },
+                onError: (e) => {
+                  if (e instanceof ApiError && e.problem.code === 'STAFF_CODE_REQUIRED') setNeedsStaffCode(true)
                 },
               },
             )
@@ -134,29 +151,38 @@ export function LoginPage() {
             />
             <Field.Error />
           </Field.Root>
-          <details className="text-sm text-ink-muted">
-            <summary className="cursor-pointer select-none hover:text-ink">Đăng nhập tài khoản nhân viên / quản trị (nếu có)</summary>
-            <div className="mt-3">
-              <Field.Root hint>
-                <Field.Label optional>Mã xác thực 2 bước (TOTP)</Field.Label>
-                <Field.Input
-                  name="staffCode"
-                  inputMode="numeric"
-                  maxLength={6}
-                  spellCheck={false}
-                  value={staffCode}
-                  onChange={(e) => {
-                    setStaffCode(e.target.value.replace(/\D/g, ''))
-                    verifyOtp.reset()
-                  }}
-                  placeholder="6 chữ số từ Authenticator"
-                  className="tracking-[0.2em] tabular"
-                />
-                <Field.Hint>Chỉ nhập nếu tài khoản của bạn thuộc vai trò nội bộ (Editor, Reviewer, Support, Super Admin).</Field.Hint>
-              </Field.Root>
-            </div>
-          </details>
-          <PrimaryButton type="submit" pending={verifyOtp.isPending} disabled={code.length !== 6}>
+          {needsStaffCode && (
+            <Field.Root error={staffError} hint>
+              <Field.Label>Mã trong Google Authenticator</Field.Label>
+              <Field.Hint>Tài khoản quản trị cần thêm mã 6 số đang hiện trong ứng dụng Authenticator.</Field.Hint>
+              <Field.Input
+                name="staffCode"
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                spellCheck={false}
+                autoFocus
+                value={staffCode}
+                onChange={(e) => {
+                  setStaffCode(e.target.value.replace(/\D/g, ''))
+                  verifyOtp.reset()
+                }}
+                className="text-lg tracking-[0.3em] tabular"
+              />
+              <Field.Error />
+            </Field.Root>
+          )}
+          {verifyCode === 'MFA_NOT_ENROLLED' && (
+            <p role="alert" className="rounded-control bg-peach-50 px-3 py-2 text-sm text-attention">
+              Tài khoản quản trị chưa kích hoạt Google Authenticator. Hãy mở link kích hoạt mà quản trị viên đã gửi cho bạn.
+            </p>
+          )}
+          <PrimaryButton
+            type="submit"
+            pending={verifyOtp.isPending}
+            disabled={code.length !== 6 || (needsStaffCode && staffCode.length !== 6)}
+          >
             Đăng nhập
           </PrimaryButton>
           <div className="flex flex-wrap justify-between gap-2">

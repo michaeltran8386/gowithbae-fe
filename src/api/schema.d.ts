@@ -207,6 +207,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/mfa-activation/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Xem link kích hoạt TOTP cho tài khoản quản trị (dùng 1 lần, hết hạn 24 giờ)
+         * @description Trả otpauth URI để quét bằng ứng dụng Authenticator. Link chỉ do SUPER_ADMIN hoặc lệnh bootstrap tạo; không có endpoint tự cấp MFA từ phiên email.
+         */
+        get: operations["getMfaActivation"];
+        put?: never;
+        /** Xác nhận mã 6 số đầu tiên để bật TOTP; thu hồi phiên cũ của tài khoản */
+        post: operations["completeMfaActivation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ảnh địa điểm (đã gắn vào địa điểm) hoặc ảnh bìa bộ sưu tập; tệp khác trả 404 */
+        get: operations["getPublicFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/site-content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Nội dung trang tĩnh hiện hành, công khai */
+        get: operations["getSiteContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -959,7 +1016,8 @@ export interface paths {
         /** Tìm tài khoản (FR-27); chỉ quản trị cao nhất */
         get: operations["adminListUsers"];
         put?: never;
-        post?: never;
+        /** Tạo tài khoản với vai trò chỉ định; tài khoản quản trị nhận link kích hoạt TOTP */
+        post: operations["adminCreateUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1009,6 +1067,142 @@ export interface paths {
         get?: never;
         /** Gán/bỏ vai trò; ghi audit; bảo vệ quản trị cuối (FR-27) */
         put: operations["adminSetUserRoles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chi tiết tài khoản, trạng thái TOTP, lần đăng nhập và hoạt động cuối */
+        get: operations["adminGetUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/mfa-activation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cấp (lại) link kích hoạt TOTP cho tài khoản quản trị; link cũ chưa dùng bị hủy */
+        post: operations["adminIssueMfaActivation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lịch sử phiên đăng nhập (thời điểm, IP, thiết bị, hoạt động cuối) */
+        get: operations["adminListUserSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/sessions/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Đăng xuất tài khoản khỏi mọi thiết bị (không khóa tài khoản) */
+        post: operations["adminRevokeUserSessions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tổng hợp hoạt động và sự kiện gần đây của một tài khoản (không gồm nội dung riêng tư) */
+        get: operations["adminGetUserActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/site-content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetSiteContent"];
+        /** Thay toàn bộ nội dung trang tĩnh; ghi audit các mục thay đổi */
+        put: operations["adminUpdateSiteContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gửi thông báo vào hộp thư trong app cho một người hoặc mọi tài khoản đang hoạt động */
+        post: operations["adminSendNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/notifications/sent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lịch sử thông báo đã gửi (mới nhất trước) */
+        get: operations["adminListSentNotifications"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1506,6 +1700,154 @@ export interface components {
             items: components["schemas"]["AdminUser"][];
             page: components["schemas"]["PageMeta"];
         };
+        AdminCreateUserRequest: {
+            /** Format: email */
+            email: string;
+            displayName?: string;
+            /** @description Mặc định [MEMBER] */
+            roles?: components["schemas"]["Role"][];
+        };
+        AdminUserCreated: {
+            user: components["schemas"]["AdminUser"];
+            activation?: components["schemas"]["MfaActivationLink"];
+        };
+        MfaActivationLink: {
+            activationUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        MfaActivationConfirm: {
+            code: string;
+        };
+        MfaActivationPreview: {
+            email: string;
+            otpauthUri: string;
+            /** @description Base32, để nhập tay khi không quét được QR */
+            secret: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AdminUserDetail: components["schemas"]["AdminUser"] & {
+            mfaEnrolled?: boolean;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+            /** Format: date-time */
+            lastSeenAt?: string | null;
+            activeSessions?: number;
+        };
+        AdminSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            revokedAt?: string | null;
+            /** Format: date-time */
+            lastSeenAt?: string | null;
+            ipAddress?: string | null;
+            userAgent?: string | null;
+            active: boolean;
+        };
+        AdminSessionPage: {
+            items: components["schemas"]["AdminSession"][];
+            page: components["schemas"]["PageMeta"];
+        };
+        AdminUserActivity: {
+            /** Format: int64 */
+            savedLists: number;
+            /** Format: int64 */
+            savedPlaces: number;
+            /** Format: int64 */
+            choiceSessionsCreated: number;
+            /** Format: int64 */
+            choiceSessionsFinalized: number;
+            /** Format: int64 */
+            plansScheduled: number;
+            /** Format: int64 */
+            plansCancelled: number;
+            /** Format: int64 */
+            plansPast: number;
+            /** Format: int64 */
+            visitsConfirmed: number;
+            /** Format: int64 */
+            supportTickets: number;
+            /** Format: int64 */
+            placeReports: number;
+            recentEvents: components["schemas"]["AdminUserEvent"][];
+        };
+        AdminUserEvent: {
+            name: string;
+            /** Format: date-time */
+            occurredAt: string;
+            objectId?: string | null;
+            platform?: string | null;
+        };
+        SiteContent: {
+            homeHero: {
+                title: string;
+                subtitle: string;
+            };
+            homeBanner: {
+                enabled: boolean;
+                text: string;
+                linkUrl?: string | null;
+            };
+            faq: {
+                question: string;
+                answer: string;
+            }[];
+            terms: {
+                /** @description Văn bản thường; dòng trống tách đoạn */
+                body: string;
+            };
+            privacy: {
+                body: string;
+            };
+            contact: {
+                email?: string | null;
+                phone?: string | null;
+                address?: string | null;
+                facebook?: string | null;
+            };
+            footer: {
+                text: string;
+            };
+        };
+        AdminSiteContent: components["schemas"]["SiteContent"] & {
+            /** Format: date-time */
+            updatedAt?: string | null;
+            /** Format: uuid */
+            updatedBy?: string | null;
+        };
+        AdminNotificationRequest: {
+            summary: string;
+            /** @enum {string} */
+            target: "ALL" | "USER";
+            /**
+             * Format: uuid
+             * @description Bắt buộc khi target = USER
+             */
+            userId?: string;
+        };
+        AdminNotificationSent: {
+            summary: string;
+            /** @enum {string} */
+            target: "ALL" | "USER";
+            /** Format: uuid */
+            userId?: string | null;
+            /** Format: int64 */
+            recipients: number;
+            /** Format: date-time */
+            sentAt: string;
+            /** Format: uuid */
+            sentBy?: string | null;
+        };
+        AdminNotificationSentPage: {
+            items: components["schemas"]["AdminNotificationSent"][];
+            page: components["schemas"]["PageMeta"];
+        };
         SavedListWrite: {
             name: string;
         };
@@ -1719,7 +2061,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            type: "DATE_PLAN_UPDATED" | "DATE_PLAN_CANCELLED" | "SUPPORT_REPLIED" | "SUPPORT_STATUS_CHANGED";
+            type: "DATE_PLAN_UPDATED" | "DATE_PLAN_CANCELLED" | "SUPPORT_REPLIED" | "SUPPORT_STATUS_CHANGED" | "ADMIN_ANNOUNCEMENT";
             objectType?: string;
             /** Format: uuid */
             objectId?: string;
@@ -2284,6 +2626,103 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["StandardError"];
+        };
+    };
+    getMfaActivation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaActivationPreview"];
+                };
+            };
+            410: components["responses"]["Gone"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    completeMfaActivation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaActivationConfirm"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            410: components["responses"]["Gone"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    getPublicFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nội dung ảnh */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                    "image/png": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    getSiteContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteContent"];
+                };
             };
             default: components["responses"]["StandardError"];
         };
@@ -3739,6 +4178,34 @@ export interface operations {
             default: components["responses"]["StandardError"];
         };
     };
+    adminCreateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCreateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserCreated"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            default: components["responses"]["StandardError"];
+        };
+    };
     adminLockUser: {
         parameters: {
             query?: never;
@@ -3817,6 +4284,226 @@ export interface operations {
             };
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminGetUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminIssueMfaActivation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaActivationLink"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminListUserSessions: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSessionPage"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminRevokeUserSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminGetUserActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserActivity"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminGetSiteContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSiteContent"];
+                };
+            };
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminUpdateSiteContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteContent"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSiteContent"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminSendNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminNotificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNotificationSent"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            default: components["responses"]["StandardError"];
+        };
+    };
+    adminListSentNotifications: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNotificationSentPage"];
+                };
+            };
             default: components["responses"]["StandardError"];
         };
     };

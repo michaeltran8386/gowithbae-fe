@@ -8,7 +8,7 @@ import { LoadingState } from '../components/ui/StateView.tsx'
 type AuthContextValue = {
   state: { status: 'loading' | 'anonymous' | 'member'; user: Schemas['User'] | null }
   actions: { signIn: (token: Schemas['AuthToken']) => void; signOut: () => Promise<void> }
-  meta: { isStaff: boolean }
+  meta: { isStaff: boolean; isAdmin: boolean }
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearSession = useCallback(() => {
     session.setAccessToken(null)
     setHasToken(false)
-    queryClient.clear() // máy dùng chung: không giữ dữ liệu người trước
+    // Máy dùng chung: không giữ dữ liệu người trước. resetQueries (không phải clear) để các trang đang mở,
+    // vd. trang công khai, được báo và tải lại thay vì kẹt ở trạng thái đang tải.
+    void queryClient.resetQueries()
   }, [queryClient])
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clearSession()
         },
       },
-      meta: { isStaff: !!user?.roles.some((r) => r !== 'MEMBER') },
+      meta: { isStaff: !!user?.roles.some((r) => r !== 'MEMBER'), isAdmin: !!user?.roles.includes('SUPER_ADMIN') },
     }
   }, [hasToken, me.data, me.isPending, queryClient, clearSession])
 
