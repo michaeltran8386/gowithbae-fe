@@ -18,6 +18,15 @@ npm run dev        # gọi backend thật: /api được proxy tới http://loca
 
 Chạy cả hệ thống bằng Docker Compose (web ở http://localhost:8081): trong `gowithbae-be/docker` chạy `docker compose up -d --build`, xem `gowithbae-be/docs/DEVELOPMENT.md` §9–10.
 
+### Deploy (Vercel)
+
+Production: **https://gowithbae.vercel.app** (project `gowithbae` trên Vercel). Backend: https://gowithbae-be.onrender.com.
+
+- `vercel.json` chuyển `/api/*` sang backend Render (cùng domain nên không cần CORS) và trả `index.html` cho mọi đường dẫn khác (React Router).
+- Deploy bằng CLI từ thư mục này: `npx vercel deploy --prod` (lần đầu: `npx vercel link`). Repo GitHub chưa nối với Vercel nên push không tự deploy.
+- Đổi địa chỉ backend: sửa `destination` trong `vercel.json`.
+- Backend phải đặt `APP_WEB_BASE_URL=https://gowithbae.vercel.app` và `APP_INVITE_BASE_URL=https://gowithbae.vercel.app/invite` để link kích hoạt admin, link mời cùng chọn và link mời xem kế hoạch trỏ về web này.
+
 | Lệnh | Việc |
 |---|---|
 | `npm test` | Vitest + Testing Library, dữ liệu qua MSW |
