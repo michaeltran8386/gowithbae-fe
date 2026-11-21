@@ -34,6 +34,10 @@ export const routes: RouteObject[] = [
       { path: 'choice/:sessionId', lazy: page(() => import('../pages/ChoiceVotePage.tsx'), 'ChoiceVotePage') }, // S-11 FR-12/14
       { path: 'choice/:sessionId/results', lazy: page(() => import('../pages/ChoiceResultsPage.tsx'), 'ChoiceResultsPage') }, // S-12 FR-13
       { path: 'plans/:planId', lazy: page(() => import('../pages/PlanDetailPage.tsx'), 'PlanDetailPage') }, // S-15 FR-16..18
+      { path: 'faq', lazy: page(() => import('../pages/StaticPages.tsx'), 'FaqPage') },
+      { path: 'terms', lazy: page(() => import('../pages/StaticPages.tsx'), 'TermsPage') },
+      { path: 'privacy', lazy: page(() => import('../pages/StaticPages.tsx'), 'PrivacyPage') },
+      { path: 'contact', lazy: page(() => import('../pages/StaticPages.tsx'), 'ContactPage') },
       {
         element: <Protected />,
         children: [
@@ -82,7 +86,13 @@ export const routes: RouteObject[] = [
       { path: 'collections', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionsPage') },
       { path: 'collections/new', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionEditPage') },
       { path: 'collections/:collectionId', lazy: page(() => import('../pages/admin/AdminCollectionsPage.tsx'), 'AdminCollectionEditPage') },
-      { path: '*', lazy: page(() => import('../pages/admin/AdminPendingPage.tsx'), 'AdminPendingPage') },
+      { path: 'content', lazy: page(() => import('../pages/admin/AdminContentPage.tsx'), 'AdminContentPage') },
+      { path: 'notifications', lazy: page(() => import('../pages/admin/AdminNotificationsPage.tsx'), 'AdminNotificationsPage') },
+      { path: 'place-reports', lazy: page(() => import('../pages/admin/AdminPlaceReportsPage.tsx'), 'AdminPlaceReportsPage') },
+      { path: 'place-reports/:reportId', lazy: page(() => import('../pages/admin/AdminPlaceReportsPage.tsx'), 'AdminPlaceReportDetailPage') },
+      { path: 'tickets', lazy: page(() => import('../pages/admin/AdminTicketsPage.tsx'), 'AdminTicketsPage') },
+      { path: 'tickets/:ticketId', lazy: page(() => import('../pages/admin/AdminTicketsPage.tsx'), 'AdminTicketDetailPage') },
+      { path: '*', lazy: page(() => import('../pages/NotFoundPage.tsx'), 'NotFoundPage') },
     ],
   },
 ]

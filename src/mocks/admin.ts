@@ -112,8 +112,7 @@ export const adminHandlers = [
   ),
   // Địa điểm, CSV, nhãn, bộ sưu tập: src/mocks/adminCatalog.ts
   ...catalogHandlers,
-  http.get(`${API}/admin/place-reports`, ({ request }) => (isAdmin(request) ? json({ items: [], page: page(0) }) : problem(401, 'Chưa đăng nhập'))),
-  http.get(`${API}/admin/support-tickets`, ({ request }) => (isAdmin(request) ? json({ items: [], page: page(0) }) : problem(401, 'Chưa đăng nhập'))),
+  // Nội dung web, thông báo, báo sai, ticket: src/mocks/adminSupport.ts (đăng ký trong handlers.ts)
 
   // ───────── Người dùng ─────────
   http.get(`${API}/admin/users`, ({ request }) => {

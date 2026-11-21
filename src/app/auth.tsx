@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearSession = useCallback(() => {
     session.setAccessToken(null)
     setHasToken(false)
-    queryClient.clear() // máy dùng chung: không giữ dữ liệu người trước
+    // Máy dùng chung: không giữ dữ liệu người trước. resetQueries (không phải clear) để các trang đang mở,
+    // vd. trang công khai, được báo và tải lại thay vì kẹt ở trạng thái đang tải.
+    void queryClient.resetQueries()
   }, [queryClient])
 
   useEffect(() => {

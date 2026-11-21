@@ -72,8 +72,9 @@ export function useNewTickets() {
 
 // ───────── Người dùng ─────────
 
-export function useAdminUsers(query: { q?: string; status?: UserStatus; page: number }) {
+export function useAdminUsers(query: { q?: string; status?: UserStatus; page: number }, options: { enabled?: boolean } = {}) {
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: ['admin', 'users', query],
     queryFn: () =>
       unwrap(
