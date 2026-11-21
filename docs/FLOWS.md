@@ -28,7 +28,7 @@ Dữ liệu minh họa nằm trong bộ nhớ trình duyệt: tải lại trang 
 ### 2.3 Lưu và rủ người ấy cùng chọn
 
 1. Ở chi tiết địa điểm bấm **Lưu** → chọn hoặc tạo danh sách.
-2. **Đã lưu** (`/saved`) → mở một danh sách → **"Mời người ấy cùng chọn"** (cần ≥ 2 nơi đang hiển thị).
+2. Bấm **"Rủ người ấy cùng chọn"** ở trang Khám phá hoặc Buổi hẹn, hoặc nút **"Mời cùng chọn"** trên thẻ danh sách ở **Đã lưu**. Cần một danh sách có **ít nhất 2 nơi**; trang chọn danh sách nói rõ danh sách nào còn thiếu bao nhiêu nơi.
 3. **Tạo lời mời** (`/choice/new`): chọn 2–5 nơi → **Tạo lời mời** → copy link. Link chỉ hiện một lần.
 4. Người ấy mở link (`/invite/:token`), không cần tài khoản → **Tham gia chọn** → bấm Thích / Bỏ qua từng nơi (`/choice/:id`). Mỗi link nhận một người.
 5. Bạn bỏ phiếu → **Kết quả** (`/choice/:id/results`) → **"Chốt … và tạo kế hoạch"**. Kế hoạch tạo ra được chia sẻ cho người ấy.
@@ -40,7 +40,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 - **Buổi hẹn** (`/plans`): sắp tới / đã qua. **Tạo kế hoạch** (`/plans/new`): chọn nơi, ngày giờ, ghi chú. Hệ thống cảnh báo nếu nơi đóng cửa giờ đó.
 - **Chi tiết** (`/plans/:id`): thêm vào lịch (`.ics`), chỉ đường, sửa, hủy. Người nhận chỉ xem.
 - Sau giờ hẹn trang chủ hiện lời nhắc "Đi chưa?".
-- Kế hoạch tạo tay ở đây **chỉ mình bạn thấy**; muốn có người cùng xem thì đi qua luồng cùng chọn (2.3).
+- **Mời người ấy xem kế hoạch** (kế hoạch tạo tay, sắp tới): khung "Mời người ấy" ở chi tiết kế hoạch → **Tạo link mời** → gửi link (chỉ hiện một lần). Người ấy mở `/plan-invite/:token`, không cần tài khoản, thấy giờ và địa điểm (không thấy ghi chú của bạn), bấm **Mình sẽ đi** / **Không đi được** (có thể ghi tên). Bạn nhận thông báo và thấy câu trả lời ngay trong khung. **Tạo link mới** làm link cũ mất hiệu lực; **Thu hồi link** để ngừng chia sẻ.
 
 ### 2.5 Tài khoản, thông báo, hỗ trợ, trang tĩnh
 
@@ -99,6 +99,6 @@ Trang quản trị dùng `adminProblemMessage` (hiện lý do thật của lỗi
 
 ## 5. Còn thiếu
 
-- Chưa có cách mời người khác từ kế hoạch tạo tay; nút "Cùng chọn" mới chỉ nằm trong trang chi tiết danh sách đã lưu (đang cân nhắc thêm ở Khám phá, Buổi hẹn, Đã lưu).
+- Người nhận link mời xem kế hoạch chưa nhận thông báo khi chủ đổi giờ/hủy (họ thấy bản mới mỗi lần mở lại link).
 - Bản đồ thật, đổi địa điểm trong màn sửa kế hoạch.
 - Chưa thử trên Safari iOS / Chrome Android máy thật.

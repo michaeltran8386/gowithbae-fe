@@ -4,7 +4,22 @@ import { formatDateTime } from '../../lib/format.ts'
 import { SecondaryButton } from '../ui/Button.tsx'
 
 /** Link mời + cảnh báo bắt buộc về quyền của người có link (FR-10, AC-013). */
-export function ShareLinkPanel({ url, expiresAt, onShared }: { url: string; expiresAt?: string; onShared?: () => void }) {
+const CHOICE_WARNING = 'Ai có liên kết này đều xem được các lựa chọn và có thể tham gia thay người ấy. Chỉ gửi cho người bạn muốn mời.'
+
+export function ShareLinkPanel({
+  url,
+  expiresAt,
+  onShared,
+  warning = CHOICE_WARNING,
+  shareTitle = 'Cùng chọn nơi hẹn hò',
+}: {
+  url: string
+  expiresAt?: string
+  onShared?: () => void
+  /** Câu cảnh báo về quyền của người có link; mặc định là câu của lời mời cùng chọn. */
+  warning?: string
+  shareTitle?: string
+}) {
   const [copied, setCopied] = useState(false)
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator
 
@@ -30,7 +45,7 @@ export function ShareLinkPanel({ url, expiresAt, onShared }: { url: string; expi
           {copied ? 'Đã sao chép' : 'Sao chép'}
         </SecondaryButton>
         {canShare && (
-          <SecondaryButton icon={<Share2 size={18} aria-hidden="true" />} onClick={() => navigator.share({ title: 'Cùng chọn nơi hẹn hò', url }).then(onShared, () => undefined)}>
+          <SecondaryButton icon={<Share2 size={18} aria-hidden="true" />} onClick={() => navigator.share({ title: shareTitle, url }).then(onShared, () => undefined)}>
             Chia sẻ
           </SecondaryButton>
         )}
@@ -41,7 +56,7 @@ export function ShareLinkPanel({ url, expiresAt, onShared }: { url: string; expi
       <p className="flex items-start gap-2 rounded-control border border-ticket-edge bg-peach-50 px-3.5 py-3 text-sm text-attention">
         <TriangleAlert size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>
-          Ai có liên kết này đều xem được các lựa chọn và có thể tham gia thay người ấy. Chỉ gửi cho người bạn muốn mời.
+          {warning}
           {expiresAt && <span className="block text-ink-muted tabular">Liên kết hết hạn lúc {formatDateTime(expiresAt)}.</span>}
         </span>
       </p>

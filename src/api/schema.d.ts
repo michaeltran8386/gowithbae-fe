@@ -644,6 +644,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/date-plans/{planId}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trạng thái link mời xem kế hoạch (chỉ chủ); 404 khi chưa có link đang hiệu lực */
+        get: operations["getDatePlanInvite"];
+        put?: never;
+        /**
+         * Tạo link mời người ấy xem kế hoạch; tạo lại thì link cũ mất hiệu lực và câu trả lời cũ bị xóa
+         * @description Chỉ chủ kế hoạch, kế hoạch đang SCHEDULED và chưa qua giờ hẹn. Link chỉ trả MỘT lần (server lưu hash).
+         *     Link hết hạn 1 ngày sau giờ hẹn, khi bị thu hồi, hoặc khi chủ không còn hoạt động. Người nhận không thấy ghi chú riêng.
+         */
+        post: operations["createDatePlanInvite"];
+        /** Thu hồi link mời xem kế hoạch */
+        delete: operations["revokeDatePlanInvite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan-invites/{inviteToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Người nhận xem kế hoạch qua link mời (không cần tài khoản, không có ghi chú riêng) */
+        get: operations["viewPlanInvite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan-invites/{inviteToken}/response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Người nhận trả lời có đi hay không; trả lời lại thì ghi đè. Chủ nhận thông báo */
+        put: operations["respondPlanInvite"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan-invites/{inviteToken}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tệp lịch cho người nhận (không có ghi chú riêng) */
+        get: operations["downloadPlanInviteCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/date-plans/{planId}/visit-report": {
         parameters: {
             query?: never;
@@ -2012,6 +2086,46 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        /**
+         * @description GOING = "Mình sẽ đi", NOT_GOING = "Không đi được"
+         * @enum {string}
+         */
+        PlanInviteResponse: "GOING" | "NOT_GOING";
+        PlanInviteCreated: {
+            /** @description Chỉ trả một lần */
+            inviteUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        PlanInviteStatus: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** @description null = chưa trả lời */
+            response?: components["schemas"]["PlanInviteResponse"] | null;
+            guestName?: string | null;
+            /** Format: date-time */
+            respondedAt?: string | null;
+        };
+        PlanInviteView: {
+            ownerName: string;
+            place: components["schemas"]["PlaceCard"];
+            placeAvailable?: boolean;
+            /** Format: date-time */
+            scheduledAt: string;
+            status: components["schemas"]["DatePlanStatus"];
+            /** Format: date-time */
+            expiresAt: string;
+            response?: components["schemas"]["PlanInviteResponse"] | null;
+            guestName?: string | null;
+            warnings?: components["schemas"]["Warning"][];
+        };
+        PlanInviteRespond: {
+            response: components["schemas"]["PlanInviteResponse"];
+            /** @description Tên để chủ biết ai trả lời (tùy chọn) */
+            guestName?: string;
+        };
         /** @enum {string} */
         TicketStatus: "NEW" | "IN_PROGRESS" | "WAITING_CUSTOMER" | "CLOSED";
         /** @enum {string} */
@@ -2061,7 +2175,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            type: "DATE_PLAN_UPDATED" | "DATE_PLAN_CANCELLED" | "SUPPORT_REPLIED" | "SUPPORT_STATUS_CHANGED" | "ADMIN_ANNOUNCEMENT";
+            type: "DATE_PLAN_UPDATED" | "DATE_PLAN_CANCELLED" | "SUPPORT_REPLIED" | "SUPPORT_STATUS_CHANGED" | "ADMIN_ANNOUNCEMENT" | "DATE_PLAN_INVITE_RESPONDED";
             objectType?: string;
             /** Format: uuid */
             objectId?: string;
@@ -3448,6 +3562,149 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    getDatePlanInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: components["parameters"]["PlanId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanInviteStatus"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createDatePlanInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: components["parameters"]["PlanId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanInviteCreated"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    revokeDatePlanInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                planId: components["parameters"]["PlanId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    viewPlanInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteToken: components["parameters"]["InviteToken"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanInviteView"];
+                };
+            };
+            410: components["responses"]["Gone"];
+        };
+    };
+    respondPlanInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteToken: components["parameters"]["InviteToken"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanInviteRespond"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanInviteView"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+        };
+    };
+    downloadPlanInviteCalendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteToken: components["parameters"]["InviteToken"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            410: components["responses"]["Gone"];
         };
     };
     reportVisit: {

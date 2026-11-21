@@ -63,6 +63,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: 'login', lazy: page(() => import('../pages/LoginPage.tsx'), 'LoginPage') }, // S-06 FR-07
       { path: 'invite/:inviteToken', lazy: page(() => import('../pages/InvitePage.tsx'), 'InvitePage') }, // S-10 FR-11
+      { path: 'plan-invite/:token', lazy: page(() => import('../pages/PlanInvitePage.tsx'), 'PlanInvitePage') }, // mời xem kế hoạch tạo tay
       // Kích hoạt Google Authenticator cho tài khoản quản trị (link dùng 1 lần) — chưa đăng nhập
       { path: 'admin/activate/:token', lazy: page(() => import('../pages/admin/ActivateMfaPage.tsx'), 'ActivateMfaPage') },
     ],
