@@ -50,6 +50,7 @@ export async function unwrap<T>(request: Promise<FetchResult<T>>): Promise<T> {
 
 /** Câu chữ theo SRS §5.2 cho mã nghiệp vụ biết trước; mã lạ dùng `detail` của server. */
 const CODE_MESSAGES: Record<string, string> = {
+  EMAIL_TAKEN: 'Email đã có tài khoản',
   SLOT_TAKEN: 'Lời mời này đã có người tham gia. Hãy liên hệ người mời để nhận liên kết mới.',
   'RULE-06': 'Bạn chỉ có thể so sánh tối đa 3 địa điểm',
   'RULE-08': 'Hãy chọn từ 2 đến 5 địa điểm',

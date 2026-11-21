@@ -59,14 +59,22 @@ export const routes: RouteObject[] = [
     children: [
       { path: 'login', lazy: page(() => import('../pages/LoginPage.tsx'), 'LoginPage') }, // S-06 FR-07
       { path: 'invite/:inviteToken', lazy: page(() => import('../pages/InvitePage.tsx'), 'InvitePage') }, // S-10 FR-11
+      // Kích hoạt Google Authenticator cho tài khoản quản trị (link dùng 1 lần) — chưa đăng nhập
+      { path: 'admin/activate/:token', lazy: page(() => import('../pages/admin/ActivateMfaPage.tsx'), 'ActivateMfaPage') },
     ],
   },
   {
-    // F2 — chưa lên lịch (chờ OQ-15/18/19/20)
+    // Trang quản trị — chỉ SUPER_ADMIN (AdminLayout kiểm tra; quyền thật ở server)
     path: 'admin',
     element: <AdminLayout />,
     errorElement: <RouteErrorPage />,
-    children: [{ path: '*?', lazy: page(() => import('../pages/admin/AdminPendingPage.tsx'), 'AdminPendingPage') }],
+    children: [
+      { index: true, lazy: page(() => import('../pages/admin/AdminDashboardPage.tsx'), 'AdminDashboardPage') },
+      { path: 'users', lazy: page(() => import('../pages/admin/AdminUsersPage.tsx'), 'AdminUsersPage') },
+      { path: 'users/:userId', lazy: page(() => import('../pages/admin/AdminUserDetailPage.tsx'), 'AdminUserDetailPage') },
+      { path: 'audit', lazy: page(() => import('../pages/admin/AdminAuditPage.tsx'), 'AdminAuditPage') },
+      { path: '*', lazy: page(() => import('../pages/admin/AdminPendingPage.tsx'), 'AdminPendingPage') },
+    ],
   },
 ]
 

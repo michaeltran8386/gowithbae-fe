@@ -7,6 +7,7 @@ import { http, HttpResponse, delay } from 'msw'
 import type { Schemas } from '../api/client.ts'
 import { hoursOn } from '../lib/hours.ts'
 import { vnParts } from '../lib/format.ts'
+import { adminHandlers } from './admin.ts'
 import { MOCK_OTP, MOCK_TOKEN, areas, collections, places, taxonomies, toCard } from './data.ts'
 import {
   collectionSummary,
@@ -99,6 +100,8 @@ function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
 const visiblePlaces = () => places.filter((p) => !p.hidden)
 
 export const handlers = [
+  // Quản trị trước: chặn request của quản trị viên, phần còn lại rơi xuống handler web khách
+  ...adminHandlers,
   // ───────── Discovery ─────────
   http.get(`${API}/collections`, () => json(collections.map(collectionSummary))),
   http.get(`${API}/collections/:id`, ({ params }) => {
@@ -389,6 +392,7 @@ export const handlers = [
     return json({
       creatorName: s.creatorName,
       candidateCount: s.candidateIds.length,
+      candidates: s.candidateIds.map((id) => toCard(findPlace(id)!)),
       slotAvailable: s.recipientName === null,
       expiresAt: s.grant.expiresAt,
     } satisfies Schemas['ShareGrantPreview'])

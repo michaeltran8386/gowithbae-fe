@@ -8,7 +8,7 @@ import { LoadingState } from '../components/ui/StateView.tsx'
 type AuthContextValue = {
   state: { status: 'loading' | 'anonymous' | 'member'; user: Schemas['User'] | null }
   actions: { signIn: (token: Schemas['AuthToken']) => void; signOut: () => Promise<void> }
-  meta: { isStaff: boolean }
+  meta: { isStaff: boolean; isAdmin: boolean }
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clearSession()
         },
       },
-      meta: { isStaff: !!user?.roles.some((r) => r !== 'MEMBER') },
+      meta: { isStaff: !!user?.roles.some((r) => r !== 'MEMBER'), isAdmin: !!user?.roles.includes('SUPER_ADMIN') },
     }
   }, [hasToken, me.data, me.isPending, queryClient, clearSession])
 
