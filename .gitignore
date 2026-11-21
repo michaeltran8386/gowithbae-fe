@@ -42,3 +42,5 @@ desktop.ini
 # Vite / TypeScript cache
 .vite
 *.tsbuildinfo
+.vercel
+.env*
