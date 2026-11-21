@@ -64,8 +64,14 @@ export function SearchPage() {
     const data = results.data
     if (!data || data.searchId === lastSearchId.current) return
     lastSearchId.current = data.searchId
-    track('results_shown', { properties: { searchId: data.searchId, resultsCount: data.page.totalElements } })
-  }, [results.data])
+    track('results_shown', {
+      properties: {
+        search_id: data.searchId,
+        results_count: data.page.totalElements,
+        ...(filters.areaId ? { area_id: filters.areaId } : {}),
+      },
+    })
+  }, [results.data, filters.areaId])
 
   /** search: tính là một lượt tìm (FR-32 — gửi truy vấn hoặc áp dụng lọc). keepPage: chỉ khi chuyển trang. */
   function update(mutate: (p: URLSearchParams) => void, { search = true, keepPage = false } = {}) {
@@ -73,7 +79,8 @@ export function SearchPage() {
     if (!keepPage) next.delete('page')
     mutate(next)
     setParams(next)
-    if (search) track('search_submitted', { properties: { filterCount: countFilters(readParams(next).filters) } })
+    const nextAreaId = readParams(next).filters.areaId
+    if (search) track('search_submitted', nextAreaId ? { properties: { area_id: nextAreaId } } : undefined)
   }
 
   function applyFilters(f: Filters) {

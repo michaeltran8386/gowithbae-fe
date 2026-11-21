@@ -8,12 +8,17 @@ import { readStorage, writeStorage } from './storage.ts'
 
 type EventName = Schemas['AnalyticsEvent']['name']
 
-/** Whitelist thuộc tính theo từng sự kiện (chờ đội giải pháp rà soát, OQ-20). */
+/** Whitelist thuộc tính theo từng sự kiện, khớp schema snake_case của EventsDelegate (BE). */
 const ALLOWED_PROPS: Partial<Record<EventName, string[]>> = {
-  search_submitted: ['searchId', 'filterCount'],
-  results_shown: ['searchId', 'resultsCount'],
-  vote_submitted: ['candidateId', 'preference'],
-  visit_self_reported: ['answer'],
+  search_submitted: ['search_id', 'area_id', 'category_id'],
+  results_shown: ['search_id', 'results_count', 'area_id', 'category_id'],
+  place_viewed: ['area_id', 'category_id'],
+  place_saved: ['area_id', 'category_id'],
+  comparison_opened: ['area_id', 'category_id'],
+  invite_created: ['area_id', 'category_id'],
+  vote_submitted: ['candidate_id', 'preference', 'area_id', 'category_id'],
+  date_plan_created: ['area_id', 'category_id'],
+  visit_self_reported: ['answer', 'area_id', 'category_id'],
 }
 
 const SESSION_KEY = 'gwb.analyticsSession'

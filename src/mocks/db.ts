@@ -24,6 +24,8 @@ type Plan = {
   status: Schemas['DatePlanStatus']
   choiceSessionId: string | null
   visitAnswer: 'YES' | 'NO' | null
+  reminderStatus?: Schemas['DateReminderStatus']
+  reminderDismissedAt?: string | null
   createdAt: string
   updatedAt: string
 }

@@ -4,6 +4,8 @@ Frontend GoWithBae G1: React 19 · TypeScript · Vite · Tailwind CSS 4 · React
 
 **Luồng chức năng và hướng dẫn dùng (đọc đầu tiên):** [docs/FLOWS.md](docs/FLOWS.md)
 
+**Yêu cầu sản phẩm:** [SRS hợp nhất G1](docs/SRS.md) — cùng nội dung với bản trong repo backend.
+
 **Hướng dẫn làm việc:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · **Tech stack:** [TECHSTACK.md](TECHSTACK.md) · **Phân tích, kiến trúc, UX/UI:** [docs/frontend/](docs/frontend/README.md)
 
 ## Chạy

@@ -394,7 +394,7 @@ export const handlers = [
     return json({
       creatorName: s.creatorName,
       candidateCount: s.candidateIds.length,
-      candidates: s.candidateIds.map((id) => toCard(findPlace(id)!)),
+      candidates: s.candidateIds.filter(isVisible).map((id) => toCard(findPlace(id)!)),
       slotAvailable: s.recipientName === null,
       expiresAt: s.grant.expiresAt,
     } satisfies Schemas['ShareGrantPreview'])
@@ -459,7 +459,14 @@ export const handlers = [
       if (err) return err
     }
     p.placeId = placeId
-    if (body.scheduledAt) p.scheduledAt = body.scheduledAt
+    if (body.scheduledAt && body.scheduledAt !== p.scheduledAt) {
+      p.scheduledAt = body.scheduledAt
+      // OQ-25: đổi giờ mới mở lại lời nhắc nếu chưa answered
+      if (p.reminderStatus !== 'ANSWERED') {
+        p.reminderStatus = 'PENDING'
+        p.reminderDismissedAt = null
+      }
+    }
     if (body.note !== undefined) p.note = body.note?.trim() || null
     p.updatedAt = new Date().toISOString()
     return json(planView(p, 'OWNER'))
@@ -504,7 +511,77 @@ export const handlers = [
       return problem(409, 'Chưa đến giờ hẹn hoặc kế hoạch đã hủy', { code: 'RULE-15' })
     const { answer } = (await request.json()) as { answer: 'YES' | 'NO' }
     p.visitAnswer = answer // lặp lại không tạo lượt mới (RULE-29)
+    p.reminderStatus = 'ANSWERED'
     return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${API}/date-plans/:id/reminder`, ({ request, params }) => {
+    const p = db.plans.find((x) => x.id === params.id)
+    if (!p) return notFound()
+    const isOwner = isMember(request)
+    const rs = recipientSessionOf(request)
+    if (!isOwner && (!rs || rs.datePlanId !== p.id)) return notFound()
+    const due = p.status === 'SCHEDULED' && new Date(p.scheduledAt).getTime() <= Date.now()
+    const status = p.visitAnswer != null ? 'ANSWERED' : (p.reminderStatus ?? 'PENDING')
+    const canRespond = isOwner && due && p.visitAnswer == null && status !== 'CANCELLED'
+    const shouldShow = isOwner && due && p.visitAnswer == null && status !== 'DISMISSED' && status !== 'ANSWERED'
+    return json({
+      reminder:
+        status === 'PENDING' && !p.reminderDismissedAt
+          ? null
+          : {
+              id: p.id,
+              planId: p.id,
+              scheduledAt: p.scheduledAt,
+              status,
+              dismissedAt: p.reminderDismissedAt ?? null,
+              answeredAt: p.visitAnswer != null ? p.updatedAt : null,
+            },
+      shouldShow,
+      canRespond,
+    } satisfies Schemas['DateReminderState'])
+  }),
+  http.put(`${API}/date-plans/:id/reminder`, async ({ request, params }) => {
+    const p = db.plans.find((x) => x.id === params.id)
+    if (!p) return notFound()
+    if (!isMember(request)) return problem(409, 'Chỉ chủ kế hoạch mới có quyền xác nhận', { code: 'OQ-10' })
+    if (p.status === 'CANCELLED' || new Date(p.scheduledAt).getTime() > Date.now())
+      return problem(409, 'Chưa đến giờ hẹn hoặc kế hoạch đã hủy', { code: 'RULE-15' })
+    const { action } = (await request.json()) as Schemas['DateReminderAction']
+    const now = new Date().toISOString()
+    if (action === 'CONFIRM_VISIT') {
+      p.visitAnswer = 'YES'
+      p.reminderStatus = 'ANSWERED'
+    } else if (action === 'DISMISS') {
+      p.reminderStatus = 'DISMISSED'
+      p.reminderDismissedAt = now
+    }
+    return json({
+      reminder: {
+        id: p.id,
+        planId: p.id,
+        scheduledAt: p.scheduledAt,
+        status: p.reminderStatus ?? 'PENDING',
+        dismissedAt: p.reminderDismissedAt ?? null,
+        answeredAt: p.visitAnswer != null ? now : null,
+      },
+      shouldShow: false,
+      canRespond: false,
+    } satisfies Schemas['DateReminderState'])
+  }),
+  http.get(`${API}/me/places/:placeId/visit-count`, ({ request, params }) => {
+    if (!isMember(request)) return problem(401, 'Chưa đăng nhập')
+    const placeIdValue = String(params.placeId)
+    const count = db.plans.filter((p) => p.placeId === placeIdValue && p.visitAnswer === 'YES').length
+    return json({ placeId: placeIdValue, count } satisfies Schemas['PlaceVisitCount'])
+  }),
+  http.post(`${API}/uploads`, async ({ request }) => {
+    const form = await request.formData()
+    const purpose = String(form.get('purpose') ?? '')
+    if (purpose !== 'PLACE_REPORT' && !isMember(request)) return problem(403, 'Cần đăng nhập')
+    const file = form.get('file')
+    const sizeBytes = file instanceof Blob ? file.size : 128
+    const contentType = file instanceof Blob && file.type ? file.type : 'image/jpeg'
+    return json({ id: newId('0000000d'), contentType, sizeBytes, url: null } satisfies Schemas['StoredFile'], { status: 201 })
   }),
 
   // ───────── Support ─────────
