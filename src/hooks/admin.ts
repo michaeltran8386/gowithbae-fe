@@ -139,6 +139,18 @@ export function useAdminUserMutations(userId?: string) {
     issueActivation: useMutation({
       mutationFn: () => unwrap(api.POST('/admin/users/{userId}/mfa-activation', { params: { path } })),
     }),
+    /** Hủy yêu cầu xóa (chờ xóa → đang hoạt động). */
+    restore: useMutation({
+      mutationFn: (reason: string) =>
+        unwrap(api.POST('/admin/users/{userId}/restore', { params: { path }, body: { reason } })),
+      onSuccess: refresh,
+    }),
+    /** Xóa tài khoản bằng ẩn danh hóa, không hoàn tác. */
+    erase: useMutation({
+      mutationFn: (body: { reason: string; confirmEmail: string }) =>
+        unwrap(api.POST('/admin/users/{userId}/erase', { params: { path }, body })),
+      onSuccess: refresh,
+    }),
   }
 }
 
@@ -165,4 +177,5 @@ export const STATUS_LABELS: Record<UserStatus, string> = {
   ACTIVE: 'Đang hoạt động',
   LOCKED: 'Đã khóa',
   DELETION_REQUESTED: 'Yêu cầu xóa',
+  DELETED: 'Đã xóa',
 }

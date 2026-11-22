@@ -1131,6 +1131,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/users/{userId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hủy yêu cầu xóa tài khoản (DELETION_REQUESTED → ACTIVE); bắt buộc lý do, ghi audit
+         * @description Link chia sẻ đã bị thu hồi lúc yêu cầu xóa không tự mở lại.
+         */
+        post: operations["adminRestoreUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{userId}/erase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Xóa tài khoản bằng ẩn danh hóa (không hoàn tác); bắt buộc lý do và gõ lại email
+         * @description Áp dụng cho ACTIVE, LOCKED, DELETION_REQUESTED. Không xóa chính mình hoặc quản trị cuối cùng.
+         *     Xóa dữ liệu cá nhân (danh sách lưu, kế hoạch, phiên cùng chọn, ticket, thông báo, phiên đăng nhập, Authenticator, tệp);
+         *     giữ dòng tài khoản dạng "Tài khoản đã xóa" để nhật ký, báo sai, địa điểm vẫn đúng. Email cũ đăng ký lại được.
+         */
+        post: operations["adminEraseUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users/{userId}/roles": {
         parameters: {
             query?: never;
@@ -1741,8 +1783,11 @@ export interface components {
         };
         /** @enum {string} */
         Role: "MEMBER" | "EDITOR" | "REVIEWER" | "SUPPORT" | "SUPER_ADMIN";
-        /** @enum {string} */
-        UserStatus: "ACTIVE" | "LOCKED" | "DELETION_REQUESTED";
+        /**
+         * @description DELETED = đã ẩn danh hóa (trạng thái cuối, không khôi phục, không đăng nhập)
+         * @enum {string}
+         */
+        UserStatus: "ACTIVE" | "LOCKED" | "DELETION_REQUESTED" | "DELETED";
         AuthToken: {
             accessToken: string;
             /** Format: date-time */
@@ -1769,6 +1814,15 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             lockedReason?: string | null;
+            /** Format: date-time */
+            deletionRequestedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Thời điểm backend tự xóa nếu không khôi phục
+             */
+            scheduledDeletionAt?: string | null;
+            /** Format: date-time */
+            deletedAt?: string | null;
         };
         AdminUserPage: {
             items: components["schemas"]["AdminUser"][];
@@ -4510,6 +4564,63 @@ export interface operations {
             };
             404: components["responses"]["NotFound"];
             default: components["responses"]["StandardError"];
+        };
+    };
+    adminRestoreUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: components["requestBodies"]["Reason"];
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminEraseUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    /** @description Phải khớp email hiện tại của tài khoản */
+                    confirmEmail: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
     adminSetUserRoles: {

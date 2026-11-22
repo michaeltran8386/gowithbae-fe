@@ -40,6 +40,11 @@ function resetAdminDb() {
     { ...adminDb.admin, createdAt: iso(60 * 24 * 30), lockedReason: null },
     { id: '0000000a-0000-4000-8000-000000000002', email: 'linh@example.com', displayName: 'Linh', avatarUrl: null, roles: ['MEMBER'], status: 'ACTIVE', createdAt: iso(60 * 24 * 5), lockedReason: null },
     { id: '0000000a-0000-4000-8000-000000000003', email: 'spam@example.com', displayName: 'Tài khoản rác', avatarUrl: null, roles: ['MEMBER'], status: 'LOCKED', createdAt: iso(60 * 24 * 2), lockedReason: 'Spam báo sai' },
+    {
+      id: '0000000a-0000-4000-8000-000000000004', email: 'roi-di@example.com', displayName: 'Muốn rời đi', avatarUrl: null, roles: ['MEMBER'],
+      status: 'DELETION_REQUESTED', createdAt: iso(60 * 24 * 40), lockedReason: null,
+      deletionRequestedAt: iso(60 * 24 * 3), scheduledDeletionAt: new Date(Date.now() + 27 * 86400_000).toISOString(),
+    },
   ]
   adminDb.audit = [
     { id: 1, actorId: adminDb.admin.id, action: 'USER_LOCKED', objectType: 'app_user', objectId: '0000000a-0000-4000-8000-000000000003', reason: 'Spam báo sai', createdAt: iso(60 * 24) },
@@ -174,6 +179,31 @@ export const adminHandlers = [
       return json(u)
     }),
   ),
+  http.post(`${API}/admin/users/:id/restore`, async ({ request, params }) => {
+    if (!isAdmin(request)) return problem(401, 'Chưa đăng nhập')
+    const u = findUser(params.id as string)
+    if (!u) return problem(404, 'Không tìm thấy')
+    if (u.status !== 'DELETION_REQUESTED') return problem(409, 'Chỉ khôi phục được tài khoản đang chờ xóa')
+    const { reason } = (await request.json()) as { reason: string }
+    Object.assign(u, { status: 'ACTIVE', deletionRequestedAt: null, scheduledDeletionAt: null })
+    audit('USER_RESTORED', u.id, reason)
+    return json(u)
+  }),
+  http.post(`${API}/admin/users/:id/erase`, async ({ request, params }) => {
+    if (!isAdmin(request)) return problem(401, 'Chưa đăng nhập')
+    const u = findUser(params.id as string)
+    if (!u) return problem(404, 'Không tìm thấy')
+    const { reason, confirmEmail } = (await request.json()) as { reason: string; confirmEmail: string }
+    if (u.status === 'DELETED') return problem(409, 'Tài khoản đã bị xóa')
+    if (u.id === adminDb.admin.id) return problem(409, 'Không thể tự xóa tài khoản của mình')
+    if (confirmEmail.trim().toLowerCase() !== u.email.toLowerCase()) return problem(400, 'Email xác nhận không khớp')
+    Object.assign(u, {
+      email: `deleted+${u.id}@deleted.invalid`, displayName: 'Tài khoản đã xóa', roles: [], status: 'DELETED', lockedReason: null,
+      deletionRequestedAt: null, scheduledDeletionAt: null, deletedAt: new Date().toISOString(),
+    })
+    audit('USER_ERASED', u.id, reason)
+    return json(u)
+  }),
   http.put(`${API}/admin/users/:id/roles`, async ({ request, params }) => {
     if (!isAdmin(request)) return problem(401, 'Chưa đăng nhập')
     const u = findUser(params.id as string)

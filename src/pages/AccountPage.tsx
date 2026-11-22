@@ -226,7 +226,7 @@ function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose: () => 
       open={open}
       onClose={() => (setTyped(''), onClose())}
       title="Yêu cầu xóa tài khoản?"
-      description="Bạn sẽ bị đăng xuất ngay và các liên kết mời đã tạo sẽ hết hiệu lực. Việc xử lý dữ liệu theo chính sách của GoWithBae."
+      description="Bạn sẽ bị đăng xuất ngay và các liên kết mời đã tạo sẽ hết hiệu lực. Tài khoản và dữ liệu cá nhân bị xóa sau 30 ngày; trong thời gian này muốn giữ lại tài khoản, hãy liên hệ hỗ trợ."
       confirmLabel="Gửi yêu cầu xóa"
       pending={requestDeletion.isPending}
       onConfirm={() => {
