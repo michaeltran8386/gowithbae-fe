@@ -25,7 +25,8 @@ export function RoleBadges({ roles }: { roles: Role[] }) {
 }
 
 export function StatusBadge({ status }: { status: UserStatus }) {
-  return <Badge tone={status === 'ACTIVE' ? 'success' : status === 'LOCKED' ? 'attention' : 'muted'}>{STATUS_LABELS[status]}</Badge>
+  const tone = status === 'ACTIVE' ? 'success' : status === 'LOCKED' || status === 'DELETION_REQUESTED' ? 'attention' : 'muted'
+  return <Badge tone={tone}>{STATUS_LABELS[status]}</Badge>
 }
 
 /** Danh sách tài khoản: tìm theo email/tên, lọc trạng thái, tạo tài khoản mới. */

@@ -22,6 +22,7 @@ import { useToast } from '../../components/ui/Toast.tsx'
 import { formatDateTime, formatRelative } from '../../lib/format.ts'
 import { RoleBadges, StatusBadge } from './AdminUsersPage.tsx'
 import { AuditTable } from './AdminAuditPage.tsx'
+import { DangerZone, DeletionBanner, PendingDeletionActions } from '../../components/admin/AccountDeletion.tsx'
 
 type Tab = 'activity' | 'sessions' | 'audit'
 
@@ -29,6 +30,8 @@ type Tab = 'activity' | 'sessions' | 'audit'
 export function AdminUserDetailPage() {
   const { userId = '' } = useParams()
   const user = useAdminUser(userId)
+  const { state } = useAuth()
+  const isSelf = state.user?.id === userId
   const [tab, setTab] = useState<Tab>('activity')
 
   if (user.isPending) return <LoadingState />
@@ -40,7 +43,12 @@ export function AdminUserDetailPage() {
       <Link to="/admin/users" className="mb-3 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft size={16} aria-hidden="true" /> Tài khoản
       </Link>
-      <PageHeader title={u.displayName} description={u.email} actions={<UserActions user={u} />} />
+      <PageHeader
+        title={u.displayName}
+        description={u.email}
+        actions={u.status === 'DELETION_REQUESTED' ? <PendingDeletionActions user={u} /> : u.status === 'DELETED' ? null : <UserActions user={u} />}
+      />
+      <DeletionBanner user={u} />
 
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Trạng thái" value={<StatusBadge status={u.status} />} hint={u.lockedReason ?? undefined} />
@@ -80,6 +88,7 @@ export function AdminUserDetailPage() {
       {tab === 'activity' && <ActivityTab userId={userId} />}
       {tab === 'sessions' && <SessionsTab userId={userId} />}
       {tab === 'audit' && <UserAuditTab userId={userId} />}
+      {(u.status === 'ACTIVE' || u.status === 'LOCKED') && !isSelf && <DangerZone user={u} />}
     </>
   )
 }

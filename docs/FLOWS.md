@@ -44,7 +44,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 
 ### 2.5 Tài khoản, thông báo, hỗ trợ, trang tĩnh
 
-- **Tài khoản** (`/account`): đổi email, đăng xuất, xóa tài khoản.
+- **Tài khoản** (`/account`): đổi email, đăng xuất, yêu cầu xóa tài khoản (bị xóa sau 30 ngày; trong thời gian đó liên hệ hỗ trợ để admin khôi phục).
 - **Thông báo** (chuông, `/account/notifications`): kế hoạch đổi/hủy, hỗ trợ trả lời, thông báo từ quản trị.
 - **Hỗ trợ** (`/account/support`): tạo yêu cầu, xem hội thoại, trả lời.
 - **Báo sai**: từ chi tiết địa điểm; gửi được khi chưa đăng nhập.
@@ -63,7 +63,7 @@ Tự test một mình: dùng tab thường cho bạn, cửa sổ ẩn danh cho n
 | Menu | Làm gì |
 |---|---|
 | Bảng điều khiển | Số liệu theo kỳ, xuất CSV; địa điểm chờ duyệt, báo sai và yêu cầu hỗ trợ mới |
-| Tài khoản | Tìm/lọc, **Tạo tài khoản** (chọn Admin thì hiện link kích hoạt để gửi). Chi tiết: khóa/mở (bắt buộc lý do), đổi vai trò, đăng xuất mọi thiết bị, cấp lại link Authenticator; tab Hoạt động, Phiên đăng nhập (IP, thiết bị), Nhật ký |
+| Tài khoản | Tìm/lọc, **Tạo tài khoản** (chọn Admin thì hiện link kích hoạt để gửi). Chi tiết: khóa/mở (bắt buộc lý do), đổi vai trò, đăng xuất mọi thiết bị, cấp lại link Authenticator; tab Hoạt động, Phiên đăng nhập (IP, thiết bị), Nhật ký. Tài khoản **chờ xóa**: hiện ngày tự xóa, nút **Khôi phục** / **Xóa ngay**. Tài khoản khác: **Vùng nguy hiểm → Xóa tài khoản** (gõ lại email + lý do, không hoàn tác) |
 | Địa điểm | Lọc trạng thái/khu vực/từ khóa → tạo hoặc sửa: thông tin, nhãn theo nhóm, giá, giờ mở cửa (tuần + ngoại lệ), nguồn; **Ảnh** (tải lên, ghi nguồn/quyền, chọn bìa). Khung **Trạng thái & duyệt** liệt kê phần còn thiếu và các nút chuyển trạng thái |
 | Nhập CSV | Tải file mẫu → tải file lên để kiểm tra → xem lỗi từng dòng → **Ghi thành nháp** (chỉ khi cả file hợp lệ) |
 | Nhãn & khu vực | Thêm, đổi tên, ngừng dùng / dùng lại (không xóa) |
