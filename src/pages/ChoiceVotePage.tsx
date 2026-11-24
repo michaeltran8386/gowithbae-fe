@@ -14,7 +14,7 @@ import { useToast } from '../components/ui/Toast.tsx'
 
 /** Tên trạng thái là DER/PROP (SRS §7.3), chờ PO duyệt câu chữ cuối. */
 const STATUS: Record<Schemas['ChoiceSessionStatus'], { label: string; tone: 'attention' | 'action' | 'muted' }> = {
-  WAITING: { label: 'Chờ người ấy tham gia', tone: 'attention' },
+  WAITING: { label: 'Chờ mọi người tham gia', tone: 'attention' },
   VOTING: { label: 'Đang chọn', tone: 'action' },
   FINALIZED: { label: 'Đã chốt', tone: 'muted' },
 }
@@ -40,7 +40,8 @@ function ChoiceVote({ session }: { session: Schemas['ChoiceSession'] }) {
   const vote = useCastVote(session.id)
   const toast = useToast()
   const isCreator = session.viewerRole === 'CREATOR'
-  const partner = isCreator ? session.recipientName : session.creatorName
+  const people = session.participantNames ?? (session.recipientName ? [session.recipientName] : [])
+  const partner = isCreator ? (people.length > 3 ? `${people.slice(0, 3).join(', ')} và ${people.length - 3} người khác` : people.join(', ')) : session.creatorName
   const answered = session.candidates.filter((c) => c.myVote).length
   const total = session.candidates.length
   const mutual = session.candidates.filter((c) => c.mutualLike).length
@@ -53,8 +54,16 @@ function ChoiceVote({ session }: { session: Schemas['ChoiceSession'] }) {
       </div>
       <h1 className="mt-2 text-2xl leading-8 font-bold md:text-3xl">{partner ? `Cùng chọn với ${partner}` : 'Phiên cùng chọn'}</h1>
       <p className="mt-1 text-ink-muted">
-        {isCreator ? 'Bạn sẽ chọn nơi cuối cùng sau khi cả hai trả lời.' : `${session.creatorName} sẽ chọn nơi cuối cùng.`}
+        {isCreator ? 'Bạn chốt nơi cuối cùng, dựa trên số lượt Thích của mọi người.' : `${session.creatorName} sẽ chọn nơi cuối cùng.`}
       </p>
+      {session.listId && !finalized && (
+        <p className="mt-1 text-[13px] text-ink-muted">Danh sách tự cập nhật: nơi mới được thêm sẽ hiện ở đây.</p>
+      )}
+      {isCreator && people.length > 0 && (
+        <p className="mt-2 text-sm tabular">
+          <span className="font-semibold">{people.length} người đã tham gia:</span> <span className="text-ink-muted">{people.join(', ')}</span>
+        </p>
+      )}
 
       {finalized && (
         <div role="status" className="mt-4 flex flex-wrap items-center gap-3 rounded-block border border-line bg-white p-4">
@@ -69,7 +78,7 @@ function ChoiceVote({ session }: { session: Schemas['ChoiceSession'] }) {
 
       {session.status === 'WAITING' && isCreator && (
         <div role="status" className="mt-4 rounded-block border border-sky-100 bg-action-soft p-4 text-sm">
-          Người ấy chưa tham gia. Bạn vẫn có thể trả lời trước; gửi lại liên kết ở phần Chia sẻ bên dưới nếu cần.
+          Chưa ai tham gia. Bạn vẫn có thể trả lời trước; gửi liên kết cho mọi người ở phần Chia sẻ bên dưới.
         </div>
       )}
 
@@ -101,7 +110,7 @@ function ChoiceVote({ session }: { session: Schemas['ChoiceSession'] }) {
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white px-4 pt-2.5 pb-[max(.625rem,env(safe-area-inset-bottom))] md:static md:mt-6 md:border-0 md:bg-transparent md:p-0">
         <ButtonLink to={`/choice/${session.id}/results`} className="w-full md:w-auto">
-          Xem nơi cả hai cùng thích <span className="tabular">({mutual})</span>
+          Xem kết quả <span className="tabular">({mutual} nơi mọi người cùng thích)</span>
         </ButtonLink>
       </div>
     </div>
@@ -139,7 +148,7 @@ function SharingSection({ session }: { session: Schemas['ChoiceSession'] }) {
           Cấp liên kết mới
         </SecondaryButton>
         {grant?.status === 'VALID' && <DangerButton onClick={() => setConfirm('revoke')}>Thu hồi liên kết</DangerButton>}
-        {session.recipientName && <DangerButton onClick={() => setConfirm('remove')}>Loại {session.recipientName}</DangerButton>}
+        {session.recipientName && <DangerButton onClick={() => setConfirm('remove')}>Loại mọi người được mời</DangerButton>}
       </div>
       <p className="mt-2 text-[13px] text-ink-muted">Cấp liên kết mới sẽ thay liên kết cũ; liên kết cũ không dùng lại được.</p>
 
@@ -155,8 +164,8 @@ function SharingSection({ session }: { session: Schemas['ChoiceSession'] }) {
       <ConfirmDialog
         open={confirm === 'remove'}
         onClose={() => setConfirm(null)}
-        title={`Loại ${session.recipientName ?? 'người nhận'} khỏi phiên?`}
-        description="Người này sẽ mất quyền truy cập phiên. Các phiếu đã có được giữ nguyên ý nghĩa. Bạn có thể cấp liên kết mới để mời lại."
+        title="Loại mọi người được mời khỏi phiên?"
+        description="Mọi người được mời sẽ mất quyền truy cập phiên. Các phiếu đã có được giữ nguyên ý nghĩa. Bạn có thể cấp liên kết mới để mời lại."
         confirmLabel="Loại khỏi phiên"
         pending={removeRecipient.isPending}
         onConfirm={() => removeRecipient.mutate(undefined, { onSuccess: () => (setConfirm(null), toast.show('Đã loại người nhận')), onError })}

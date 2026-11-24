@@ -18,7 +18,7 @@ export function VoteCard({
   onVote: (preference: Schemas['VotePreference']) => void
   disabled: boolean
 }) {
-  const { place, myVote, mutualLike, available } = candidate
+  const { place, myVote, mutualLike, available, likeCount } = candidate
   const groupName = `vote-${candidate.id}`
   const price = priceForTwo(place.price)
 
@@ -41,11 +41,14 @@ export function VoteCard({
             <span className="text-attention">Nơi này không còn hiển thị</span>
           ) : mutualLike ? (
             <span className="inline-flex items-center gap-1 text-action-hover">
-              <Heart size={14} /> Cả hai cùng thích
+              <Heart size={14} /> Mọi người cùng thích
             </span>
           ) : myVote == null ? (
             <span className="text-attention">Bạn chưa trả lời</span>
           ) : null}
+          {likeCount != null && likeCount > 0 && !mutualLike && (
+            <span className="ml-2 font-normal text-ink-muted tabular">· {likeCount} lượt thích</span>
+          )}
         </p>
       </div>
       <fieldset className="col-span-2 grid grid-cols-2 gap-2" disabled={disabled || !available}>

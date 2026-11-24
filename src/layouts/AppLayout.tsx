@@ -1,16 +1,18 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
-import { Bell, CalendarHeart, Compass, Heart as HeartIcon, Megaphone, UserRound } from 'lucide-react'
+import { Bell, CalendarHeart, Compass, Megaphone, UserRound } from 'lucide-react'
 import { useAuth } from '../app/auth.tsx'
 import { useNotifications } from '../hooks/account.ts'
 import { useSiteContent } from '../hooks/adminSupport.ts'
+import { useSavedLists } from '../hooks/saved.ts'
 import { CompareTray } from '../components/place/Compare.tsx'
+import { CartIcon } from '../components/cart/CartIcons.tsx'
+import { ListDock } from '../components/cart/ListDock.tsx'
 import { Logo } from '../components/ui/Logo.tsx'
 import { MockDataBanner } from './MockDataBanner.tsx'
 
-// Điều hướng chính SRS §8: Khám phá, Đã lưu, Buổi hẹn, Tài khoản.
+// Điều hướng chính (CR-002): tab Đã lưu thay bằng icon giỏ hẹn ở header.
 const NAV = [
   { to: '/', label: 'Khám phá', icon: Compass, end: true },
-  { to: '/saved', label: 'Đã lưu', icon: HeartIcon },
   { to: '/plans', label: 'Buổi hẹn', icon: CalendarHeart },
   { to: '/account', label: 'Tài khoản', icon: UserRound },
 ]
@@ -25,6 +27,9 @@ const FOOTER_LINKS = [
 /** Trang có action bar đáy riêng thì ẩn bottom nav trên mobile. */
 const ACTION_BAR_ROUTES = [/^\/places\/[^/]+$/, /^\/choice\/(?!new$)[^/]+$/]
 
+/** Trang lướt địa điểm: hiện icon list nổi bên phải (đích của nút +). */
+const BROWSE_ROUTES = [/^\/$/, /^\/search$/, /^\/collections\/[^/]+$/, /^\/places\/[^/]+$/]
+
 export function AppLayout() {
   const { state } = useAuth()
   const { pathname } = useLocation()
@@ -32,6 +37,7 @@ export function AppLayout() {
   const notifications = useNotifications(member)
   const unread = notifications.data?.unreadCount ?? 0
   const hideBottomNav = ACTION_BAR_ROUTES.some((r) => r.test(pathname))
+  const showDock = member && BROWSE_ROUTES.some((r) => r.test(pathname))
   const site = useSiteContent().data
 
   return (
@@ -59,6 +65,7 @@ export function AppLayout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
+            {member && <CartLink />}
             {member ? (
               <Link
                 to="/account/notifications"
@@ -88,6 +95,7 @@ export function AppLayout() {
       </main>
 
       <CompareTray />
+      {showDock && <ListDock />}
 
       <footer className="mx-auto max-w-6xl px-4 py-8 text-[13px] text-ink-muted md:px-6 md:py-10">
         <nav aria-label="Thông tin" className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
@@ -103,7 +111,7 @@ export function AppLayout() {
       {!hideBottomNav && (
         <nav
           aria-label="Thanh điều hướng"
-          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+          className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
         >
           {NAV.map((n) => (
             <NavLink
@@ -125,6 +133,28 @@ export function AppLayout() {
         </nav>
       )}
     </div>
+  )
+}
+
+/** Icon giỏ hẹn kiểu Shopee (CR-002): badge = tổng số nơi trong mọi danh sách, bấm vào trang giỏ. */
+function CartLink() {
+  const lists = useSavedLists()
+  const total = lists.data?.reduce((sum, l) => sum + l.placeCount, 0) ?? 0
+  return (
+    <NavLink
+      to="/saved"
+      aria-label={total > 0 ? `Giỏ hẹn, ${total} địa điểm` : 'Giỏ hẹn'}
+      className={({ isActive }) =>
+        `relative inline-flex size-11 items-center justify-center rounded-full hover:bg-action-soft hover:text-action ${isActive ? 'bg-action-soft text-action' : 'text-ink-muted'}`
+      }
+    >
+      <CartIcon size={24} />
+      {total > 0 && (
+        <span aria-hidden="true" className="absolute top-1 right-0.5 min-w-5 rounded-full bg-attention px-1 text-center text-[11px] leading-5 font-bold text-white tabular">
+          {total > 99 ? '99+' : total}
+        </span>
+      )}
+    </NavLink>
   )
 }
 

@@ -53,7 +53,7 @@ export function AdminLayout() {
   const { state, meta, actions } = useAuth()
   const location = useLocation()
   if (state.status === 'loading') return <LoadingState />
-  if (state.status === 'anonymous') return <Navigate to={loginHref(location.pathname + location.search)} replace />
+  if (state.status === 'anonymous') return <Navigate to={`${loginHref(location.pathname + location.search)}&staff=1`} replace />
   if (!meta.isAdmin)
     return (
       <div className="mx-auto max-w-xl p-6">

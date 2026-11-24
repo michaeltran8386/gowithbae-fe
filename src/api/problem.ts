@@ -56,6 +56,12 @@ const CODE_MESSAGES: Record<string, string> = {
   'RULE-08': 'Hãy chọn từ 2 đến 5 địa điểm',
   'RULE-05': 'Địa điểm đóng cửa vào thời gian bạn chọn',
   'RULE-11': 'Phiên này đã được chốt, không thể đổi lựa chọn',
+  // CR-002
+  GOOGLE_TOKEN_INVALID: 'Không xác minh được tài khoản Google, vui lòng thử lại',
+  GOOGLE_EMAIL_UNVERIFIED: 'Email Google của bạn chưa được xác minh',
+  GOOGLE_ACCOUNT_CONFLICT: 'Email này đã gắn với một tài khoản Google khác. Hãy liên hệ hỗ trợ.',
+  DEFAULT_LIST_LOCKED: 'Không thể đổi tên hoặc xóa danh sách “Đã lưu”',
+  LIST_HAS_ACTIVE_SESSION: 'Danh sách này đang có phiên cùng chọn. Mở phiên đó để chia sẻ tiếp.',
 }
 
 export function problemMessage(err: unknown): string {

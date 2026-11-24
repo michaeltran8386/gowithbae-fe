@@ -2,12 +2,16 @@
 import type { Schemas } from '../api/client.ts'
 import { collections, me, places, placeId, toCard, uidFactory } from './data.ts'
 
-type SavedList = { id: string; name: string; createdAt: string; items: { placeId: string; addedAt: string }[] }
+type SavedList = { id: string; name: string; createdAt: string; isDefault?: boolean; items: { placeId: string; addedAt: string }[] }
 type Session = {
   id: string
   creatorIsMe: boolean
   creatorName: string
   recipientName: string | null
+  /** CR-002: tất cả người được mời (không giới hạn). */
+  participants?: string[]
+  /** CR-002: phiên theo danh sách — lựa chọn lấy trực tiếp từ danh sách. */
+  listId?: string | null
   candidateIds: string[]
   votes: Record<'creator' | 'recipient', Record<string, Schemas['VotePreference']>>
   status: Schemas['ChoiceSessionStatus']
@@ -40,6 +44,13 @@ const daysFromNow = (d: number) => hoursFromNow(d * 24)
 function createDb() {
   const meCopy: Schemas['User'] = { ...me }
   const savedLists: SavedList[] = [
+    {
+      id: uidFactory('00000006', 9),
+      name: 'Đã lưu',
+      isDefault: true,
+      createdAt: daysFromNow(-30),
+      items: [{ placeId: placeId(3), addedAt: daysFromNow(-3) }],
+    },
     {
       id: uidFactory('00000006', 1),
       name: 'Cuối tuần này',
@@ -186,8 +197,20 @@ export const isVisible = (id: string) => {
 }
 
 export function listSummary(l: SavedList): Schemas['SavedListSummary'] {
-  return { id: l.id, name: l.name, placeCount: l.items.length, createdAt: l.createdAt }
+  const active = db.sessions.find((s) => s.listId === l.id && s.status !== 'FINALIZED')
+  return { id: l.id, name: l.name, placeCount: l.items.length, createdAt: l.createdAt, isDefault: !!l.isDefault, activeChoiceSessionId: active?.id ?? null }
 }
+
+/** Phiên theo danh sách: lựa chọn đi theo danh sách cho tới khi chốt (CR-002). */
+export function candidateIdsOf(s: Session) {
+  if (!s.listId || s.status === 'FINALIZED') return s.candidateIds
+  const list = db.savedLists.find((l) => l.id === s.listId)
+  if (!list) return s.candidateIds
+  s.candidateIds = list.items.map((i) => i.placeId)
+  return s.candidateIds
+}
+
+export const participantsOf = (s: Session) => s.participants ?? (s.recipientName ? [s.recipientName] : [])
 
 export function listDetail(l: SavedList): Schemas['SavedListDetail'] {
   return {
@@ -198,19 +221,27 @@ export function listDetail(l: SavedList): Schemas['SavedListDetail'] {
 
 export function sessionView(s: Session, viewer: 'CREATOR' | 'RECIPIENT'): Schemas['ChoiceSession'] {
   const mine = viewer === 'CREATOR' ? s.votes.creator : s.votes.recipient
+  const people = participantsOf(s)
   return {
     id: s.id,
     status: s.status,
     viewerRole: viewer,
     creatorName: s.creatorName,
-    recipientName: s.recipientName,
-    candidates: s.candidateIds.map((pid) => ({
+    recipientName: people.length ? people.join(', ') : null,
+    participantNames: people,
+    listId: s.listId ?? null,
+    candidates: candidateIdsOf(s).map((pid) => ({
       id: pid,
       place: toCard(findPlace(pid)!),
       available: isVisible(pid),
       myVote: mine[pid] ?? null,
       partnerVote: null, // OQ-07: mặc định không lộ phiếu riêng của người kia
       mutualLike: s.votes.creator[pid] === 'LIKE' && s.votes.recipient[pid] === 'LIKE',
+      // Mock gộp phiếu người được mời làm một; người tạo luôn thấy số lượt Thích.
+      likeCount:
+        viewer === 'CREATOR' || s.status === 'FINALIZED'
+          ? (s.votes.creator[pid] === 'LIKE' ? 1 : 0) + (s.votes.recipient[pid] === 'LIKE' ? people.length : 0)
+          : null,
     })),
     activeShareGrant:
       viewer === 'CREATOR' && s.grant ? { id: s.grant.id, expiresAt: s.grant.expiresAt, status: s.grant.status } : undefined,

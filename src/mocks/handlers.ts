@@ -12,6 +12,7 @@ import { supportHandlers } from './adminSupport.ts'
 import { planInviteHandlers } from './planInvites.ts'
 import { MOCK_OTP, MOCK_TOKEN, areas, collections, places, taxonomies, toCard } from './data.ts'
 import {
+  candidateIdsOf,
   collectionSummary,
   db,
   findPlace,
@@ -19,6 +20,7 @@ import {
   listDetail,
   listSummary,
   newId,
+  participantsOf,
   planView,
   sessionView,
   type Session,
@@ -204,6 +206,12 @@ export const handlers = [
     db.me.email = email
     return json({ accessToken: MOCK_TOKEN, expiresAt: new Date(Date.now() + 86400_000).toISOString(), user: db.me } satisfies Schemas['AuthToken'])
   }),
+  http.post(`${API}/auth/google`, async ({ request }) => {
+    await delay(300)
+    const { idToken } = (await request.json()) as { idToken: string }
+    if (!idToken) return problem(401, 'Không xác minh được tài khoản Google', { code: 'GOOGLE_TOKEN_INVALID' })
+    return json({ accessToken: MOCK_TOKEN, expiresAt: new Date(Date.now() + 86400_000).toISOString(), user: db.me } satisfies Schemas['AuthToken'])
+  }),
   http.post(`${API}/auth/logout`, () => new HttpResponse(null, { status: 204 })),
   http.get(`${API}/me`, ({ request }) => (isMember(request) ? json(db.me) : problem(401, 'Chưa đăng nhập'))),
   http.patch(`${API}/me`, async ({ request }) => {
@@ -251,6 +259,7 @@ export const handlers = [
     if (!isMember(request)) return problem(401, 'Chưa đăng nhập')
     const l = db.savedLists.find((x) => x.id === params.id)
     if (!l) return notFound()
+    if (l.isDefault) return problem(409, 'Không thể đổi tên danh sách “Đã lưu”', { code: 'DEFAULT_LIST_LOCKED' })
     const { name } = (await request.json()) as Schemas['SavedListWrite']
     if (!name?.trim()) return badRequest('name', 'Hãy đặt tên danh sách')
     l.name = name.trim()
@@ -260,6 +269,8 @@ export const handlers = [
     if (!isMember(request)) return problem(401, 'Chưa đăng nhập')
     const i = db.savedLists.findIndex((x) => x.id === params.id)
     if (i < 0) return notFound()
+    if (db.savedLists[i].isDefault) return problem(409, 'Không thể xóa danh sách “Đã lưu”', { code: 'DEFAULT_LIST_LOCKED' })
+    for (const s of db.sessions) if (s.listId === db.savedLists[i].id) s.listId = null
     db.savedLists.splice(i, 1) // RULE-07: không xóa place/plan
     return new HttpResponse(null, { status: 204 })
   }),
@@ -285,8 +296,16 @@ export const handlers = [
   ),
   http.post(`${API}/choice-sessions`, async ({ request }) => {
     if (!isMember(request)) return problem(401, 'Chưa đăng nhập')
-    const { placeIds } = (await request.json()) as { placeIds: string[] }
-    if (!Array.isArray(placeIds) || placeIds.length < 2 || placeIds.length > 5 || new Set(placeIds).size !== placeIds.length)
+    const body = (await request.json()) as { placeIds?: string[]; listId?: string }
+    let placeIds = body.placeIds as string[]
+    if (body.listId) {
+      const list = db.savedLists.find((l) => l.id === body.listId)
+      if (!list) return notFound()
+      if (db.sessions.some((s) => s.listId === list.id && s.status !== 'FINALIZED'))
+        return problem(409, 'Danh sách này đang có phiên cùng chọn chưa chốt', { code: 'LIST_HAS_ACTIVE_SESSION' })
+      placeIds = list.items.map((i) => i.placeId).filter(isVisible)
+      if (placeIds.length === 0) return problem(400, 'Danh sách cần có ít nhất 1 địa điểm đang hoạt động')
+    } else if (!Array.isArray(placeIds) || placeIds.length < 2 || placeIds.length > 5 || new Set(placeIds).size !== placeIds.length)
       return problem(400, 'Số địa điểm không hợp lệ', { code: 'RULE-08' })
     if (!placeIds.every(isVisible)) return problem(400, 'Có địa điểm không còn hiển thị', { code: 'RULE-01' })
     const token = `moi-${Math.random().toString(36).slice(2, 10)}`
@@ -295,6 +314,8 @@ export const handlers = [
       creatorIsMe: true,
       creatorName: db.me.displayName,
       recipientName: null,
+      participants: [],
+      listId: body.listId ?? null,
       candidateIds: placeIds,
       votes: { creator: {}, recipient: {} },
       status: 'WAITING',
@@ -326,7 +347,7 @@ export const handlers = [
     const role = isMember(request) && s.creatorIsMe ? 'creator' : recipientSessionOf(request)?.id === s.id ? 'recipient' : null
     if (!role) return notFound()
     if (s.status === 'FINALIZED') return problem(409, 'Phiên đã chốt', { code: 'RULE-11' }) // AC-018
-    if (!s.candidateIds.includes(String(params.candidateId))) return notFound()
+    if (!candidateIdsOf(s).includes(String(params.candidateId))) return notFound()
     const { preference } = (await request.json()) as { preference: Schemas['VotePreference'] }
     s.votes[role][String(params.candidateId)] = preference
     return new HttpResponse(null, { status: 204 })
@@ -385,6 +406,7 @@ export const handlers = [
     const s = db.sessions.find((x) => x.id === params.id)
     if (!s || !isMember(request) || !s.creatorIsMe) return notFound()
     s.recipientName = null
+    s.participants = []
     if (s.grant) s.grant.status = 'REVOKED'
     return new HttpResponse(null, { status: 204 })
   }),
@@ -395,9 +417,9 @@ export const handlers = [
     if (!s || s.grant?.status !== 'VALID') return problem(410, 'Liên kết không còn hiệu lực')
     return json({
       creatorName: s.creatorName,
-      candidateCount: s.candidateIds.length,
-      candidates: s.candidateIds.filter(isVisible).map((id) => toCard(findPlace(id)!)),
-      slotAvailable: s.recipientName === null,
+      candidateCount: candidateIdsOf(s).length,
+      candidates: candidateIdsOf(s).filter(isVisible).map((id) => toCard(findPlace(id)!)),
+      slotAvailable: s.status !== 'FINALIZED', // CR-002: không giới hạn số người
       expiresAt: s.grant.expiresAt,
     } satisfies Schemas['ShareGrantPreview'])
   }),
@@ -407,8 +429,9 @@ export const handlers = [
     if (!s || s.grant?.status !== 'VALID') return problem(410, 'Liên kết không còn hiệu lực')
     const { displayName } = (await request.json()) as { displayName: string }
     if (!displayName?.trim()) return badRequest('displayName', 'Hãy nhập tên hiển thị')
-    if (s.recipientName !== null) return problem(409, 'Suất đã có người', { code: 'SLOT_TAKEN' }) // AC-015
-    s.recipientName = displayName.trim()
+    if (s.status === 'FINALIZED') return problem(409, 'Phiên cùng chọn đã được chốt')
+    s.participants = [...participantsOf(s), displayName.trim()] // CR-002: không giới hạn số người
+    s.recipientName = s.participants[0]
     s.status = 'VOTING'
     return json({ recipientSession: `rs-${s.id}`, choiceSessionId: s.id } satisfies Schemas['RecipientSessionToken'])
   }),

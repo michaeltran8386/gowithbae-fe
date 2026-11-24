@@ -1,6 +1,6 @@
 import type { Schemas } from '../../api/client.ts'
 import { PlaceCard } from './PlaceCard.tsx'
-import { SaveButton } from './SaveToList.tsx'
+import { AddToListButton, SaveButton } from './SaveToList.tsx'
 import { CompareToggle } from './Compare.tsx'
 
 /** Lưới thẻ địa điểm chuẩn cho trang khám phá/kết quả/bộ sưu tập: 1 / 2 / 3 cột. */
@@ -11,8 +11,10 @@ export function PlaceGrid({ places }: { places: Schemas['PlaceCard'][] }) {
         <li key={p.id} className="flex">
           <PlaceCard.Root place={p} className="w-full">
             <PlaceCard.Media>
-              <div className="absolute top-2 right-2 z-10">
+              {/* CR-002: tim = lưu vào "Đã lưu"; + = thêm vào danh sách đang chọn (bay vào icon list) */}
+              <div className="absolute top-2 right-2 z-10 flex gap-1.5">
                 <SaveButton placeId={p.id} placeName={p.name} />
+                <AddToListButton place={p} />
               </div>
             </PlaceCard.Media>
             <PlaceCard.Body>

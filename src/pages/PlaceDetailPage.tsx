@@ -9,7 +9,7 @@ import { track } from '../lib/analytics.ts'
 import { DAY_NAMES, formatDistance, formatPlainDate, priceForTwo } from '../lib/format.ts'
 import { describeDay, hoursOn, formatRanges } from '../lib/hours.ts'
 import { PlaceMedia } from '../components/place/PlaceMedia.tsx'
-import { SaveButton, SaveToListDialog } from '../components/place/SaveToList.tsx'
+import { AddToListButton, SaveButton, SaveToListDialog } from '../components/place/SaveToList.tsx'
 import { CompareToggle } from '../components/place/Compare.tsx'
 import { Dialog } from '../components/ui/Dialog.tsx'
 import { Field } from '../components/ui/Field.tsx'
@@ -168,6 +168,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
             </ButtonLink>
             <div className="flex gap-2">
               <SaveButton placeId={place.id} placeName={place.name} variant="labelled" />
+              <AddToListButton place={place} className="border border-line" />
               <CompareToggle placeId={place.id} placeName={place.name} />
             </div>
             <div className="flex gap-2 border-t border-line pt-3">
@@ -186,6 +187,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
 
       <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-2 border-t border-line bg-white px-4 pt-2.5 pb-[max(.625rem,env(safe-area-inset-bottom))] shadow-raised lg:hidden">
         <SaveButton placeId={place.id} placeName={place.name} />
+        <AddToListButton place={place} />
         <CompareToggle placeId={place.id} placeName={place.name} />
         <a href={directions} target="_blank" rel="noopener noreferrer" aria-label="Chỉ đường" className="inline-flex size-11 items-center justify-center rounded-full text-ink-muted hover:bg-page">
           <Navigation size={20} aria-hidden="true" />

@@ -9,6 +9,7 @@ import { ButtonLink, GhostButton } from '../components/ui/Button.tsx'
 import { Badge, EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { useToast } from '../components/ui/Toast.tsx'
 import { ListNameDialog } from './SavedListsPage.tsx'
+import { MIN_INVITE_PLACES, inviteHref } from '../components/choice/InviteEntry.tsx'
 import { NotFoundPage } from './NotFoundPage.tsx'
 
 /** S-08 Chi tiết danh sách — FR-09, điểm bắt đầu mời cùng chọn FR-10. */
@@ -26,7 +27,7 @@ export function SavedListPage() {
 
   const l = list.data
   const available = l.items.filter((i) => i.available)
-  const canInvite = available.length >= 2
+  const canInvite = available.length >= MIN_INVITE_PLACES
 
   return (
     <>
@@ -35,6 +36,7 @@ export function SavedListPage() {
           <h1 className="text-2xl font-bold break-words md:text-3xl">{l.name}</h1>
           <p className="mt-1 text-ink-muted tabular">{l.items.length} địa điểm</p>
         </div>
+        {!l.isDefault && (
         <div className="flex gap-1">
           <GhostButton icon={<Pencil size={16} aria-hidden="true" />} onClick={() => setRenaming(true)}>
             Đổi tên
@@ -43,18 +45,27 @@ export function SavedListPage() {
             Xóa
           </GhostButton>
         </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-col gap-2 rounded-block border border-sky-100 bg-action-soft p-4 md:flex-row md:items-center">
         <p className="flex-1 text-sm">
-          <span className="font-semibold">Chưa chốt được nơi nào?</span> Gửi 2–5 nơi trong danh sách cho người ấy cùng chọn.
+          {l.activeChoiceSessionId ? (
+            <>
+              <span className="font-semibold">Đang cùng chọn từ danh sách này.</span> Nơi bạn thêm hoặc bỏ sẽ tự cập nhật cho mọi người được mời.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold">Chưa chốt được nơi nào?</span> Gửi link cho bao nhiêu người cũng được. Nơi bạn thêm sau sẽ tự cập nhật cho họ.
+            </>
+          )}
         </p>
         {canInvite ? (
-          <ButtonLink to={`/choice/new?listId=${l.id}`} icon={<Users size={18} aria-hidden="true" />}>
-            Mời người ấy cùng chọn
+          <ButtonLink to={inviteHref(l)} icon={<Users size={18} aria-hidden="true" />}>
+            {l.activeChoiceSessionId ? 'Xem phiên cùng chọn' : 'Rủ cùng chọn'}
           </ButtonLink>
         ) : (
-          <p className="text-[13px] text-ink-muted">Cần ít nhất 2 địa điểm đang hiển thị để mời cùng chọn.</p>
+          <p className="text-[13px] text-ink-muted">Thêm ít nhất 1 địa điểm đang hiển thị để rủ cùng chọn.</p>
         )}
       </div>
 
@@ -62,7 +73,7 @@ export function SavedListPage() {
       <div className="mt-6">
         {l.items.length === 0 ? (
           <EmptyState title="Danh sách đang trống" action={<ButtonLink to="/">Khám phá địa điểm</ButtonLink>}>
-            Bấm biểu tượng trái tim trên thẻ địa điểm để thêm vào đây.
+            {l.isDefault ? 'Bấm trái tim trên thẻ địa điểm để lưu vào đây.' : 'Bấm + trên thẻ địa điểm để thêm vào đây.'}
           </EmptyState>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

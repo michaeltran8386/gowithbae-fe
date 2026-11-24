@@ -5,6 +5,7 @@ import { useAuth } from '../app/auth.tsx'
 import { useAuthMutations } from '../hooks/account.ts'
 import { Field } from '../components/ui/Field.tsx'
 import { GhostButton, PrimaryButton } from '../components/ui/Button.tsx'
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton.tsx'
 
 const RESEND_SECONDS = 60 // tham số tạm, chốt theo OQ-06
 
@@ -15,11 +16,84 @@ function safeReturnTo(value: string | null) {
 
 const INTENT_REASON: Record<string, string> = {
   save: 'Đăng nhập để lưu địa điểm vào danh sách của bạn.',
+  add: 'Đăng nhập để thêm địa điểm vào giỏ hẹn của bạn.',
   plan: 'Đăng nhập để lưu kế hoạch buổi hẹn.',
 }
 
-/** S-06 Đăng nhập bằng email + mã một lần — FR-07, RULE-16 (phương thức là PROP, OQ-06). */
+/**
+ * S-06 Đăng nhập — CR-002: thành viên chỉ dùng Google (1 chạm, không chờ mã email).
+ * Tài khoản quản trị vẫn dùng email + mã một lần + Authenticator (`?staff=1`).
+ */
 export function LoginPage() {
+  const { state, actions, meta } = useAuth()
+  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { google } = useAuthMutations()
+  const returnTo = safeReturnTo(params.get('returnTo'))
+  const intent = params.get('intent')
+  const destination = intent ? `${returnTo}${returnTo.includes('?') ? '&' : '?'}intent=${encodeURIComponent(intent)}` : returnTo
+
+  if (params.get('staff') === '1')
+    return (
+      <StaffOtpLogin
+        onBack={() => {
+          const next = new URLSearchParams(params)
+          next.delete('staff')
+          setParams(next, { replace: true })
+        }}
+      />
+    )
+  if (state.status === 'member') return <Navigate to={meta.isAdmin && destination === '/' ? '/admin' : destination} replace />
+
+  const googleCode = google.error instanceof ApiError ? google.error.problem.code : undefined
+
+  return (
+    <div className="rounded-block border border-line bg-white p-5 md:p-8">
+      <h1 className="text-2xl font-bold">Đăng nhập GoWithBae</h1>
+      <p className="mt-1 text-ink-muted">{(intent && INTENT_REASON[intent]) ?? 'Đăng nhập để lưu địa điểm, rủ mọi người cùng chọn và quản lý buổi hẹn.'}</p>
+      <div className="mt-6 flex flex-col gap-3">
+        <GoogleSignInButton
+          disabled={google.isPending}
+          onCredential={(idToken) =>
+            google.mutate(idToken, {
+              onSuccess: (token) => {
+                actions.signIn(token)
+                navigate(destination, { replace: true })
+              },
+            })
+          }
+        />
+        {google.isPending && (
+          <p role="status" className="text-center text-sm text-ink-muted">
+            Đang đăng nhập…
+          </p>
+        )}
+        {google.error && (
+          <p role="alert" className="rounded-control bg-danger-soft px-3.5 py-3 text-sm text-danger">
+            {googleCode === 'STAFF_USE_ADMIN_LOGIN' ? 'Tài khoản quản trị đăng nhập bằng email và Authenticator ở mục bên dưới.' : problemMessage(google.error)}
+          </p>
+        )}
+        <p className="text-[13px] text-ink-muted">Không cần mật khẩu hay mã email. Chúng tôi không hỏi thông tin về mối quan hệ của bạn.</p>
+      </div>
+      <div className="mt-6 border-t border-line pt-4 text-center">
+        <button
+          type="button"
+          onClick={() => {
+            const next = new URLSearchParams(params)
+            next.set('staff', '1')
+            setParams(next, { replace: true })
+          }}
+          className="inline-flex min-h-11 items-center text-sm text-ink-muted underline hover:text-ink"
+        >
+          Đăng nhập dành cho quản trị viên
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** Đăng nhập quản trị: email + mã một lần + Authenticator (FR-07, RULE-16, NFR-05). */
+function StaffOtpLogin({ onBack }: { onBack: () => void }) {
   const { state, actions, meta } = useAuth()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -71,8 +145,11 @@ export function LoginPage() {
 
   return (
     <div className="rounded-block border border-line bg-white p-5 md:p-8">
-      <h1 className="text-2xl font-bold">Đăng nhập GoWithBae</h1>
-      <p className="mt-1 text-ink-muted">{(intent && INTENT_REASON[intent]) ?? 'Đăng nhập để lưu địa điểm, mời người ấy cùng chọn và quản lý buổi hẹn.'}</p>
+      <button type="button" onClick={onBack} className="inline-flex min-h-11 items-center text-sm text-action hover:underline">
+        ← Đăng nhập bằng Google
+      </button>
+      <h1 className="text-2xl font-bold">Đăng nhập quản trị</h1>
+      <p className="mt-1 text-ink-muted">Dành cho tài khoản quản trị: nhập email để nhận mã, sau đó nhập mã trong Google Authenticator.</p>
 
       {step === 'email' ? (
         <form
@@ -105,7 +182,6 @@ export function LoginPage() {
           <PrimaryButton type="submit" pending={requestOtp.isPending} disabled={!email.trim()}>
             Gửi mã đăng nhập
           </PrimaryButton>
-          <p className="text-[13px] text-ink-muted">Không cần mật khẩu. Chúng tôi không hỏi thông tin về mối quan hệ của bạn.</p>
         </form>
       ) : (
         <form

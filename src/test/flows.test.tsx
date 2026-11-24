@@ -79,7 +79,7 @@ describe('UC-009 Bỏ phiếu', () => {
     expect(within(card).getByText('Bạn chưa trả lời')).toBeInTheDocument()
     expect(within(card).getByRole('radio', { name: /Thích/ })).not.toBeChecked()
     expect(within(card).getByRole('radio', { name: /Bỏ qua/ })).not.toBeChecked()
-    expect(screen.getByRole('link', { name: /Xem nơi cả hai cùng thích \(1\)/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Xem kết quả \(1 nơi mọi người cùng thích\)/ })).toBeInTheDocument()
   })
 })
 

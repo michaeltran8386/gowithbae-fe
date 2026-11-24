@@ -16,6 +16,8 @@ import { collections } from '../mocks/data.ts'
 
 const tag = (group: string, name: string) => taxonomies.find((t) => t.group === group && t.name === name)!.id
 const tomorrow = () => vnParts(new Date(Date.now() + 86400_000).toISOString()).date
+/** Danh sách mẫu "Cuối tuần này" (đứng sau danh sách mặc định "Đã lưu"). */
+const weekend = () => db.savedLists.find((l) => l.name === 'Cuối tuần này')!
 
 describe('UC-001 Tìm và lọc', () => {
   it('AC-001: tìm không dấu + ngân sách 200–<400k + hai tiện ích/không khí chỉ trả nơi đạt đủ', async () => {
@@ -64,43 +66,45 @@ describe('UC-006 Danh sách đã lưu', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Lưu vào danh sách' })
     await user.click(await within(dialog).findByRole('button', { name: /Cuối tuần này/ }))
     await screen.findByText(/Đã lưu vào “Cuối tuần này”/)
-    expect(db.savedLists[0].items.filter((i) => i.placeId === placeId(0))).toHaveLength(1)
+    expect(weekend().items.filter((i) => i.placeId === placeId(0))).toHaveLength(1)
   })
 
   it('AC-012: xóa danh sách không xóa kế hoạch', async () => {
     const plansBefore = db.plans.length
-    const { user, router } = renderApp(`/saved/${db.savedLists[0].id}`, { member: true })
+    const { user, router } = renderApp(`/saved/${weekend().id}`, { member: true })
     await screen.findByRole('heading', { level: 1, name: 'Cuối tuần này' })
     await user.click(screen.getByRole('button', { name: 'Xóa' }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText(/kế hoạch buổi hẹn của bạn không bị xóa/)).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Xóa danh sách' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/saved'))
-    expect(db.savedLists).toHaveLength(1)
+    expect(db.savedLists.map((l) => l.name)).toEqual(['Đã lưu', 'Dịp kỷ niệm'])
     expect(db.plans).toHaveLength(plansBefore)
   })
 })
 
 describe('UC-007/008 Lời mời', () => {
-  it('AC-013/014: cần 2–5 nơi; tạo xong có link và cảnh báo quyền của người có link', async () => {
-    const { user } = renderApp(`/choice/new?listId=${db.savedLists[0].id}`, { member: true })
-    await screen.findByRole('heading', { name: 'Mời người ấy cùng chọn' })
-    const create = screen.getByRole('button', { name: 'Tạo lời mời' })
-    await user.click(screen.getByRole('checkbox', { name: /Xưởng gốm/ }))
-    await user.click(screen.getByRole('checkbox', { name: /Sân thượng/ }))
-    expect(screen.getByText(/Hãy chọn từ 2 đến 5 địa điểm/)).toBeInTheDocument()
-    expect(create).toBeDisabled()
-    await user.click(screen.getByRole('checkbox', { name: /Sân thượng/ }))
-    await user.click(create)
+  it('AC-013/014 (CR-002): lời mời gửi cả danh sách; tạo xong có link và cảnh báo quyền của người có link', async () => {
+    const { user } = renderApp(`/choice/new?listId=${weekend().id}`, { member: true })
+    await screen.findByRole('heading', { name: 'Rủ cùng chọn' })
+    expect(screen.getByRole('heading', { name: /\d+ nơi sẽ được gửi/ })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Tạo link mời' }))
     expect(await screen.findByRole('heading', { name: /Đã tạo lời mời/ })).toBeInTheDocument()
     expect(screen.getByText(/Ai có liên kết này đều xem được/)).toBeInTheDocument()
     expect((screen.getByLabelText('Liên kết mời') as HTMLInputElement).value).toMatch(/\/invite\/moi-/)
+    // Phiên gắn với danh sách: nơi thêm sau tự có trong phiên; danh sách trỏ tới phiên đang chạy.
+    const s = db.sessions.at(-1)!
+    expect(s.listId).toBe(weekend().id)
+    weekend().items.push({ placeId: placeId(5), addedAt: new Date().toISOString() })
+    renderApp(`/choice/${s.id}`, { member: true })
+    expect(await screen.findByRole('link', { name: 'Phòng tranh Màu Nước' })).toBeInTheDocument()
   })
 
-  it('AC-015: suất đã có người thì không cho tham gia', async () => {
-    renderApp('/invite/loi-moi-cua-toi')
-    expect(await screen.findByRole('heading', { name: 'Lời mời này đã có người tham gia' })).toBeInTheDocument()
-    expect(screen.queryByLabelText('Tên của bạn')).not.toBeInTheDocument()
+  it('AC-015 (CR-002): không giới hạn số người — phiên đã có người vẫn cho người mới tham gia', async () => {
+    const { user } = renderApp('/invite/loi-moi-cua-toi')
+    await user.type(await screen.findByLabelText('Tên của bạn'), 'Huy')
+    await user.click(screen.getByRole('button', { name: /Tham gia/ }))
+    await waitFor(() => expect(db.sessions[0].participants).toEqual(['Lan', 'Huy']))
   })
 })
 
@@ -157,27 +161,27 @@ describe('UC-012/013 Kế hoạch', () => {
 })
 
 describe('UC-004/005 Tài khoản', () => {
-  it('AC-007/008: mã sai không cấp phiên; mã đúng đăng nhập và quay lại returnTo', async () => {
+  it('CR-002: thành viên chỉ đăng nhập Google (không có ô email/mã) và quay lại returnTo', async () => {
     const { user, router } = renderApp('/login?returnTo=%2Fplans')
-    await user.type(await screen.findByLabelText('Email'), 'ban@example.com')
-    await user.click(screen.getByRole('button', { name: 'Gửi mã đăng nhập' }))
-    const code = await screen.findByLabelText('Mã đăng nhập')
-    await user.type(code, '000000')
-    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))
-    expect(await screen.findByText('Mã không đúng hoặc đã hết hạn')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Đăng nhập GoWithBae' })
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
     expect(session.getAccessToken()).toBeNull()
-    await user.clear(code)
-    await user.type(code, '123456')
-    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))
+    await user.click(screen.getByRole('button', { name: 'Tiếp tục với Google' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/plans'))
+    expect(session.getAccessToken()).not.toBeNull()
+  })
+
+  it('CR-002: đăng nhập Google lỗi thì báo lỗi, không cấp phiên', async () => {
+    server.use(http.post('*/api/v1/auth/google', () => HttpResponse.json({ status: 401, title: 'Unauthorized', detail: 'Không xác minh được tài khoản Google, vui lòng thử lại', code: 'GOOGLE_TOKEN_INVALID' }, { status: 401, headers: { 'Content-Type': 'application/problem+json' } })))
+    const { user } = renderApp('/login')
+    await user.click(await screen.findByRole('button', { name: 'Tiếp tục với Google' }))
+    expect(await screen.findByText('Không xác minh được tài khoản Google, vui lòng thử lại')).toBeInTheDocument()
+    expect(session.getAccessToken()).toBeNull()
   })
 
   it('Chống open redirect: returnTo ra ngoài bị bỏ qua', async () => {
     const { user, router } = renderApp('/login?returnTo=https%3A%2F%2Fevil.example')
-    await user.type(await screen.findByLabelText('Email'), 'ban@example.com')
-    await user.click(screen.getByRole('button', { name: 'Gửi mã đăng nhập' }))
-    await user.type(await screen.findByLabelText('Mã đăng nhập'), '123456')
-    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))
+    await user.click(await screen.findByRole('button', { name: 'Tiếp tục với Google' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 
