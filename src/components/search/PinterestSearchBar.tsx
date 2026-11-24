@@ -193,7 +193,7 @@ export function PinterestSearchBar({
       )}
 
       {/* 2. THANH TÌM KIẾM NẰM TRÊN MỘT BẬC RIÊNG VÀ TRẢI DÀI RA (Full width) */}
-      <div ref={containerRef} className={`relative z-50 w-full ${className}`}>
+      <div ref={containerRef} className={`relative ${isOpen ? 'z-50' : 'z-10'} w-full ${className}`}>
         <form
           role="search"
           onSubmit={handleSubmit}

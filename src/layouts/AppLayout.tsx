@@ -1,12 +1,12 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
-import { Bell, CalendarHeart, Compass, Megaphone, UserRound } from 'lucide-react'
+import { CalendarHeart, Compass, Megaphone, UserRound } from 'lucide-react'
 import { useAuth } from '../app/auth.tsx'
-import { useNotifications } from '../hooks/account.ts'
 import { useSiteContent } from '../hooks/adminSupport.ts'
 import { useSavedLists } from '../hooks/saved.ts'
 import { CompareTray } from '../components/place/Compare.tsx'
 import { CartIcon } from '../components/cart/CartIcons.tsx'
 import { ListDock } from '../components/cart/ListDock.tsx'
+import { NotificationBell } from '../components/notifications/NotificationBell.tsx'
 import { Logo } from '../components/ui/Logo.tsx'
 import { MockDataBanner } from './MockDataBanner.tsx'
 
@@ -34,8 +34,6 @@ export function AppLayout() {
   const { state } = useAuth()
   const { pathname } = useLocation()
   const member = state.status === 'member'
-  const notifications = useNotifications(member)
-  const unread = notifications.data?.unreadCount ?? 0
   const hideBottomNav = ACTION_BAR_ROUTES.some((r) => r.test(pathname))
   const showDock = member && BROWSE_ROUTES.some((r) => r.test(pathname))
   const site = useSiteContent().data
@@ -47,7 +45,7 @@ export function AppLayout() {
       </a>
       <MockDataBanner />
       {site?.homeBanner.enabled && site.homeBanner.text && <SiteBanner text={site.homeBanner.text} linkUrl={site.homeBanner.linkUrl} />}
-      <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
           <Logo />
           <nav aria-label="Điều hướng chính" className="hidden flex-1 gap-1 md:flex">
@@ -67,18 +65,7 @@ export function AppLayout() {
           <div className="ml-auto flex items-center gap-1">
             {member && <CartLink />}
             {member ? (
-              <Link
-                to="/account/notifications"
-                className="relative inline-flex size-11 items-center justify-center rounded-full text-ink-muted hover:bg-action-soft hover:text-action"
-                aria-label={unread > 0 ? `Thông báo, ${unread} chưa đọc` : 'Thông báo'}
-              >
-                <Bell size={22} aria-hidden="true" />
-                {unread > 0 && (
-                  <span aria-hidden="true" className="absolute top-1.5 right-1.5 min-w-5 rounded-full bg-attention px-1 text-center text-[11px] leading-5 font-bold text-white tabular">
-                    {unread > 9 ? '9+' : unread}
-                  </span>
-                )}
-              </Link>
+              <NotificationBell />
             ) : (
               state.status === 'anonymous' && (
                 <Link to={`/login?returnTo=${encodeURIComponent(pathname)}`} className="rounded-control px-3 py-2 text-sm font-semibold text-action hover:bg-action-soft">
