@@ -7,10 +7,11 @@ export function useSavedLists(enabled = true) {
   return useQuery({ queryKey: ['saved-lists'], queryFn: () => unwrap(api.GET('/saved-lists')), enabled })
 }
 
-export function useSavedList(listId: string) {
+export function useSavedList(listId: string, enabled = true) {
   return useQuery({
     queryKey: ['saved-lists', listId],
     queryFn: () => unwrap(api.GET('/saved-lists/{listId}', { params: { path: { listId } } })),
+    enabled: enabled && !!listId,
   })
 }
 

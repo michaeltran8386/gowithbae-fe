@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { Link, type LinkProps } from 'react-router'
 import { LoaderCircle } from 'lucide-react'
 
@@ -53,7 +53,13 @@ export function ButtonLink({ variant = 'primary', className = '', icon, children
 }
 
 /** Nút chỉ có icon: bắt buộc `label` làm tên truy cập; vùng chạm 44 px. */
-export function IconButton({ label, className = '', children, type = 'button', ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
+export function IconButton({
+  label,
+  className = '',
+  children,
+  type = 'button',
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; ref?: Ref<HTMLButtonElement> }) {
   return (
     <button
       type={type}

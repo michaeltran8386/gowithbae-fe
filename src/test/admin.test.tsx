@@ -17,6 +17,8 @@ function renderAdmin(path: string) {
 describe('Đăng nhập quản trị', () => {
   it('OTP email đúng thì hỏi thêm mã Authenticator, đủ hai mã thì vào bảng điều khiển', async () => {
     const { user, router } = renderApp('/login')
+    await user.click(await screen.findByRole('button', { name: 'Đăng nhập dành cho quản trị viên' }))
+    await screen.findByRole('heading', { name: 'Đăng nhập quản trị' })
     await user.type(await screen.findByLabelText('Email'), MOCK_ADMIN_EMAIL)
     await user.click(screen.getByRole('button', { name: 'Gửi mã đăng nhập' }))
     await user.type(await screen.findByLabelText('Mã đăng nhập'), MOCK_OTP)

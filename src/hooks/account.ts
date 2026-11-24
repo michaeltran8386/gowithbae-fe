@@ -9,6 +9,8 @@ export function useAuthMutations() {
     verifyOtp: useMutation({
       mutationFn: (body: { email: string; code: string; staffCode?: string }) => unwrap(api.POST('/auth/otp/verify', { body })),
     }),
+    /** CR-002: thành viên đăng nhập bằng Google ID token (Google Identity Services). */
+    google: useMutation({ mutationFn: (idToken: string) => unwrap(api.POST('/auth/google', { body: { idToken } })) }),
   }
 }
 

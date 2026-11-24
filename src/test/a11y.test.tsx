@@ -25,7 +25,7 @@ const PAGES: { path: string; member?: boolean; heading: RegExp }[] = [
   { path: `/places/${placeId(0)}`, heading: /Xưởng gốm Đất Lành/ },
   { path: `/compare?ids=${placeId(0)},${placeId(2)}`, heading: /So sánh địa điểm/ },
   { path: '/login', heading: /Đăng nhập GoWithBae/ },
-  { path: '/saved', member: true, heading: /^Đã lưu$/ },
+  { path: '/saved', member: true, heading: /^Giỏ hẹn$/ },
   { path: `/saved/${'00000006-0000-4000-8000-000000000001'}`, member: true, heading: /Cuối tuần này/ },
   { path: '/invite/loi-moi-mau', heading: /mời bạn cùng chọn/ },
   { path: `/choice/${'00000007-0000-4000-8000-000000000001'}`, member: true, heading: /Cùng chọn với Lan/ },

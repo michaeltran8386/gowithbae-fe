@@ -3,6 +3,9 @@ import { api, session, type Schemas } from '../api/client.ts'
 import { unwrap } from '../api/problem.ts'
 import { track } from '../lib/analytics.ts'
 
+/** Chu kỳ làm mới phiên cùng chọn (ms). */
+export const LIVE_REFRESH_MS = 8000
+
 export function useMyChoiceSessions(enabled = true) {
   return useQuery({ queryKey: ['choice-sessions'], queryFn: () => unwrap(api.GET('/choice-sessions')), enabled })
 }
@@ -12,16 +15,20 @@ export function useChoiceSession(sessionId: string) {
     queryKey: ['choice-sessions', sessionId],
     queryFn: () => unwrap(api.GET('/choice-sessions/{sessionId}', { params: { path: { sessionId } } })),
     refetchOnWindowFocus: true, // thấy phiếu/ trạng thái mới của người kia khi quay lại tab
+    // CR-002: danh sách thay đổi và người mới tham gia hiện ra mà không cần tải lại trang.
+    refetchInterval: (query) => (query.state.data?.status === 'FINALIZED' ? false : LIVE_REFRESH_MS),
   })
 }
 
 export function useCreateChoiceSession() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ placeIds, idempotencyKey }: { placeIds: string[]; idempotencyKey: string }) =>
-      unwrap(api.POST('/choice-sessions', { params: { header: { 'Idempotency-Key': idempotencyKey } }, body: { placeIds } })),
+    // CR-002: listId = phiên theo danh sách (cập nhật liên tục); placeIds = cách cũ 2–5 nơi.
+    mutationFn: ({ idempotencyKey, ...body }: ({ listId: string } | { placeIds: string[] }) & { idempotencyKey: string }) =>
+      unwrap(api.POST('/choice-sessions', { params: { header: { 'Idempotency-Key': idempotencyKey } }, body })),
     onSuccess: (s) => {
       track('invite_created', { objectId: s.id })
+      qc.invalidateQueries({ queryKey: ['saved-lists'] })
       return qc.invalidateQueries({ queryKey: ['choice-sessions'] })
     },
   })

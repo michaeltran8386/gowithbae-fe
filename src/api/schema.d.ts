@@ -190,6 +190,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Đăng nhập bằng Google ID token; tạo tài khoản thành viên nếu chưa có (CR-002)
+         * @description Xác minh chữ ký Google, `aud` = Client ID cấu hình và `email_verified`. Tài khoản có email trùng được gộp. Tài khoản nội bộ (staff) không đăng nhập bằng Google: trả 403 `STAFF_USE_ADMIN_LOGIN`.
+         */
+        post: operations["loginWithGoogle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout": {
         parameters: {
             query?: never;
@@ -419,7 +439,7 @@ export interface paths {
         };
         get: operations["listMyChoiceSessions"];
         put?: never;
-        /** Tạo phiên cùng chọn từ 2–5 địa điểm đã lưu, sinh link mời (FR-10, RULE-08) */
+        /** Tạo phiên cùng chọn gắn với một danh sách (listId, cập nhật theo danh sách) hoặc từ 2–5 địa điểm đã lưu (placeIds, cách cũ); sinh link mời (FR-10, RULE-08, CR-002) */
         post: operations["createChoiceSession"];
         delete?: never;
         options?: never;
@@ -1986,6 +2006,13 @@ export interface components {
             placeCount: number;
             /** Format: date-time */
             createdAt: string;
+            /** @description true = danh sách "Đã lưu" (nút tim); không đổi tên/xóa được */
+            isDefault?: boolean;
+            /**
+             * Format: uuid
+             * @description Phiên cùng chọn chưa chốt gắn với danh sách này
+             */
+            activeChoiceSessionId?: string | null;
         };
         SavedListDetail: components["schemas"]["SavedListSummary"] & {
             items: {
@@ -2007,9 +2034,12 @@ export interface components {
             available: boolean;
             /** @description null = Chưa trả lời (không phải Bỏ qua) */
             myVote?: components["schemas"]["VotePreference"] | null;
-            /** @description Có được thấy phiếu riêng của nhau không — OQ-07 */
+            /** @description Có được thấy phiếu riêng của nhau không — OQ-07. Với nhiều người tham gia, là phiếu của người tham gia đầu tiên. */
             partnerVote?: components["schemas"]["VotePreference"] | null;
+            /** @description Mọi người tham gia (người tạo + tất cả người được mời đang hoạt động) đều Thích */
             mutualLike?: boolean;
+            /** @description Số người Thích. Người tạo luôn thấy; người được mời chỉ thấy sau khi chốt. */
+            likeCount?: number | null;
         };
         ChoiceSession: {
             /** Format: uuid */
@@ -2018,7 +2048,15 @@ export interface components {
             /** @enum {string} */
             viewerRole: "CREATOR" | "RECIPIENT";
             creatorName?: string;
+            /** @description Tên các người được mời, nối bằng dấu phẩy */
             recipientName?: string | null;
+            /** @description Tên hiển thị của mọi người được mời đang hoạt động, theo thứ tự tham gia */
+            participantNames?: string[];
+            /**
+             * Format: uuid
+             * @description Danh sách nguồn khi phiên cập nhật theo danh sách
+             */
+            listId?: string | null;
             candidates: components["schemas"]["ChoiceCandidate"][];
             activeShareGrant?: components["schemas"]["ShareGrant"];
             /** Format: uuid */
@@ -2050,6 +2088,7 @@ export interface components {
             candidateCount: number;
             /** @description Chỉ nội dung được chia sẻ; xem trước không chiếm suất hoặc bắt nhập tên. */
             candidates: components["schemas"]["PlaceCard"][];
+            /** @description Không giới hạn số người: true khi phiên chưa chốt */
             slotAvailable: boolean;
             /** Format: date-time */
             expiresAt?: string;
@@ -2779,6 +2818,36 @@ export interface operations {
             default: components["responses"]["StandardError"];
         };
     };
+    loginWithGoogle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    idToken: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthToken"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            429: components["responses"]["TooManyRequests"];
+            default: components["responses"]["StandardError"];
+        };
+    };
     logout: {
         parameters: {
             query?: never;
@@ -3242,7 +3311,13 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    placeIds: string[];
+                    /**
+                     * Format: uuid
+                     * @description Danh sách của chính người tạo; phải có ít nhất 1 nơi. Nơi thêm/xóa sau này tự cập nhật vào phiên.
+                     */
+                    listId?: string;
+                    /** @description Cách cũ: 2–5 địa điểm khác nhau. Không đặt minItems vì code sinh ra khởi tạo mảng rỗng khi chỉ gửi listId; tối thiểu kiểm tra ở server. */
+                    placeIds?: string[];
                 };
             };
         };

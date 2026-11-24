@@ -45,8 +45,8 @@ export function InvitePage() {
   const slotTaken = !p.slotAvailable || isStatus(join.error, 409)
   if (slotTaken)
     return (
-      <EmptyState icon={<UsersRound size={32} />} title="Lời mời này đã có người tham gia">
-        Mỗi lời mời chỉ dành cho một người. Hãy liên hệ {p.creatorName} để nhận liên kết mới.
+      <EmptyState icon={<UsersRound size={32} />} title="Phiên cùng chọn đã được chốt">
+        {p.creatorName} đã chọn xong nơi đi. Hãy liên hệ {p.creatorName} nếu muốn rủ lại.
       </EmptyState>
     )
   if (isStatus(join.error, 410))

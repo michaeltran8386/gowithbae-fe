@@ -36,8 +36,10 @@ export function ChoiceResultsPage() {
 function Results({ session }: { session: Schemas['ChoiceSession'] }) {
   const [chosen, setChosen] = useState<string | null>(null)
   const isCreator = session.viewerRole === 'CREATOR'
-  const mutual = session.candidates.filter((c) => c.mutualLike)
-  const others = session.candidates.filter((c) => !c.mutualLike)
+  // Nhiều người: xếp theo số lượt Thích (người tạo luôn thấy số này).
+  const byLikes = [...session.candidates].sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0))
+  const mutual = byLikes.filter((c) => c.mutualLike)
+  const others = byLikes.filter((c) => !c.mutualLike)
   const canFinalize = isCreator && session.status === 'VOTING'
 
   return (
@@ -49,16 +51,16 @@ function Results({ session }: { session: Schemas['ChoiceSession'] }) {
       </p>
       {isCreator && session.status === 'WAITING' && (
         <p role="status" className="mt-3 rounded-control bg-peach-50 px-3.5 py-3 text-sm text-attention">
-          Người ấy chưa tham gia. Bạn có thể chốt sau khi người ấy tham gia.
+          Chưa ai tham gia. Bạn có thể chốt sau khi có người tham gia.
         </p>
       )}
 
       <section aria-labelledby="mutual-heading" className="mt-6">
         <h2 id="mutual-heading" className="mb-3 flex items-center gap-2 text-[17px] font-semibold">
-          <Heart size={20} /> Cả hai cùng thích <span className="tabular">({mutual.length})</span>
+          <Heart size={20} /> Mọi người cùng thích <span className="tabular">({mutual.length})</span>
         </h2>
         {mutual.length === 0 ? (
-          <EmptyState title="Chưa có nơi cả hai cùng thích">
+          <EmptyState title="Chưa có nơi mọi người cùng thích">
             {isCreator ? 'Bạn vẫn có thể chọn một nơi bên dưới, hoặc tạo phiên mới với lựa chọn khác.' : 'Hãy chờ người mời quyết định.'}
           </EmptyState>
         ) : (
@@ -110,7 +112,10 @@ function CandidateList({
           </div>
           <div className="min-w-0">
             <p className="font-semibold">{c.place.name}</p>
-            <p className="text-[13px] text-ink-muted tabular">{priceForTwo(c.place.price) ?? 'Chưa có thông tin giá'}</p>
+            <p className="text-[13px] text-ink-muted tabular">
+              {priceForTwo(c.place.price) ?? 'Chưa có thông tin giá'}
+              {c.likeCount != null && ` · ${c.likeCount} lượt thích`}
+            </p>
             {!c.available && <p className="text-[13px] text-attention">Không còn hiển thị</p>}
           </div>
           {onChoose && c.available && (
@@ -126,11 +131,12 @@ function CandidateList({
 
 function FinalizePanel({ session, candidateId, onCancel }: { session: Schemas['ChoiceSession']; candidateId: string; onCancel: () => void }) {
   const finalize = useFinalizeChoice(session.id)
-  const place = usePlace(candidateId)
+  const candidate = session.candidates.find((c) => c.id === candidateId)
+  const place = usePlace(candidate?.place.id ?? '')
   const idem = useIdempotencyKey()
   const navigate = useNavigate()
   const toast = useToast()
-  const name = session.candidates.find((c) => c.id === candidateId)?.place.name
+  const name = candidate?.place.name
 
   return (
     <section aria-labelledby="finalize-heading" className="mt-6 rounded-block border border-action bg-white p-4 md:p-5">

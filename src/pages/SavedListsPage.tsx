@@ -8,9 +8,10 @@ import { Field } from '../components/ui/Field.tsx'
 import { ButtonLink, GhostButton, PrimaryButton } from '../components/ui/Button.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { Heart } from '../components/ui/Heart.tsx'
-import { canInviteFrom } from '../components/choice/InviteEntry.tsx'
+import { canInviteFrom, inviteHref } from '../components/choice/InviteEntry.tsx'
+import { ListIcon } from '../components/cart/CartIcons.tsx'
 
-/** S-07 Đã lưu — FR-09: danh sách riêng tư của thành viên. */
+/** S-07 Giỏ hẹn — FR-09, CR-002: nhiều danh sách; "Đã lưu" (nút tim) luôn đứng đầu. */
 export function SavedListsPage() {
   const lists = useSavedLists()
   const [creating, setCreating] = useState(false)
@@ -18,12 +19,12 @@ export function SavedListsPage() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold md:text-3xl">Đã lưu</h1>
+        <h1 className="text-2xl font-bold md:text-3xl">Giỏ hẹn</h1>
         <PrimaryButton icon={<Plus size={18} aria-hidden="true" />} onClick={() => setCreating(true)}>
           Danh sách mới
         </PrimaryButton>
       </div>
-      <p className="mt-1 text-ink-muted">Chỉ bạn thấy các danh sách này. Danh sách có từ 2 nơi trở lên thì mời người ấy cùng chọn được.</p>
+      <p className="mt-1 text-ink-muted">Tim để lưu nhanh, + để gom vào danh sách. Chỉ bạn thấy, trừ khi bạn rủ người khác cùng chọn.</p>
 
       <div className="mt-6">
         {lists.isPending ? (
@@ -39,24 +40,26 @@ export function SavedListsPage() {
             {lists.data.map((l) => (
               <li key={l.id} className="flex items-stretch gap-2">
                 <Link to={`/saved/${l.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-block border border-line bg-white px-4 py-3 hover:border-action">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-peach-50">
-                    <Heart size={20} />
+                  <span className={`flex size-11 shrink-0 items-center justify-center rounded-control ${l.isDefault ? 'bg-peach-50' : 'bg-action-soft text-action'}`}>
+                    {l.isDefault ? <Heart size={20} /> : <ListIcon size={22} />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{l.name}</span>
-                    <span className="text-[13px] text-ink-muted tabular">{l.placeCount} địa điểm</span>
+                    <span className="text-[13px] text-ink-muted tabular">
+                      {l.placeCount} địa điểm{l.activeChoiceSessionId ? ' · đang cùng chọn' : ''}
+                    </span>
                   </span>
                   <ChevronRight size={18} className="text-ink-muted" aria-hidden="true" />
                 </Link>
                 {canInviteFrom(l) && (
                   <ButtonLink
-                    to={`/choice/new?listId=${l.id}`}
+                    to={inviteHref(l)}
                     variant="secondary"
                     className="shrink-0 self-center"
                     icon={<Users size={18} aria-hidden="true" />}
-                    aria-label={`Mời cùng chọn từ ${l.name}`}
+                    aria-label={`Rủ cùng chọn từ ${l.name}`}
                   >
-                    <span className="hidden sm:inline">Mời cùng chọn</span>
+                    <span className="hidden sm:inline">Rủ cùng chọn</span>
                   </ButtonLink>
                 )}
               </li>

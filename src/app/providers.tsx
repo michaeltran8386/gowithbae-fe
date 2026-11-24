@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { ApiError } from '../api/problem.ts'
 import { AuthProvider } from './auth.tsx'
+import { CartProvider } from './cart.tsx'
 import { CompareProvider } from './compare.tsx'
 import { ToastProvider } from '../components/ui/Toast.tsx'
 
@@ -24,7 +25,9 @@ export function Providers({ client, children }: { client: QueryClient; children:
     <QueryClientProvider client={client}>
       <AuthProvider>
         <CompareProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <CartProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </CartProvider>
         </CompareProvider>
       </AuthProvider>
     </QueryClientProvider>
