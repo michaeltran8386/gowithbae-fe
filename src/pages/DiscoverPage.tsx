@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { CalendarClock, ChevronRight, MapPin, Search, Users } from 'lucide-react'
+import { CalendarClock, ChevronRight, DollarSign, Filter, MapPin, Users } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { useAuth } from '../app/auth.tsx'
 import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
@@ -14,6 +14,7 @@ import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
 import { ChoiceCallout } from '../components/choice/InviteEntry.tsx'
 import { PrimaryButton } from '../components/ui/Button.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
+import { PinterestSearchBar } from '../components/search/PinterestSearchBar.tsx'
 
 /** S-01 Khám phá — FR-01; khu "Tiếp tục" (hướng B+) gồm lời nhắc FR-18, phiên cùng chọn, buổi hẹn sắp tới. */
 export function DiscoverPage() {
@@ -96,88 +97,163 @@ function SearchHero() {
   const navigate = useNavigate()
   const areas = useAreas()
   const taxonomies = useTaxonomies()
-  const [q, setQ] = useState('')
   const [areaId, setAreaId] = useState('')
   const [budget, setBudget] = useState('')
-  const activities = (taxonomies.data ?? []).filter((t) => t.group === 'ACTIVITY' && t.status === 'ACTIVE')
+  const [activeCategoryTab, setActiveCategoryTab] = useState<'ACTIVITY' | 'OCCASION' | 'VIBE'>('ACTIVITY')
+
   const hero = useSiteContent().data?.homeHero
 
-  return (
-    <section aria-labelledby="search-heading">
-      <h2 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">
-        {hero?.title || 'Tìm nơi hẹn hò'}
-      </h2>
-      <p className="mt-1 text-ink-muted">{hero?.subtitle || 'Lọc theo khu vực, ngân sách cho hai người và việc hai bạn muốn làm.'}</p>
-      <form
-        role="search"
-        className="mt-5 grid gap-2 rounded-block border border-line bg-white p-2 md:grid-cols-[1.4fr_1fr_1fr_auto]"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const params = new URLSearchParams()
-          if (q.trim()) params.set('q', q.trim())
-          if (areaId) params.set('areaId', areaId)
-          if (budget) params.set('budget', budget)
-          navigate(`/search?${params}`)
-        }}
-      >
-        <label className="relative">
-          <span className="sr-only">Từ khóa</span>
-          <Search size={18} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            maxLength={100}
-            placeholder="Tên quán, khu vực, hoạt động…"
-            className="min-h-12 w-full rounded-control bg-page pr-3 pl-10 placeholder:text-ink-muted/80 focus:bg-white"
-          />
-        </label>
-        <label className="relative">
-          <span className="sr-only">Khu vực</span>
-          <MapPin size={18} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-          <select value={areaId} onChange={(e) => setAreaId(e.target.value)} className="min-h-12 w-full rounded-control bg-page pr-3 pl-10">
-            <option value="">Mọi khu vực</option>
-            {areas.data?.filter((a) => a.status === 'ACTIVE').map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="sr-only">Ngân sách cho hai người</span>
-          <select value={budget} onChange={(e) => setBudget(e.target.value)} className="min-h-12 w-full rounded-control bg-page px-3">
-            <option value="">Mọi ngân sách (2 người)</option>
-            {BUDGETS.map((b) => (
-              <option key={b.value} value={b.value}>
-                {b.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <PrimaryButton type="submit" className="min-h-12 px-6">
-          Tìm
-        </PrimaryButton>
-      </form>
+  const activities = (taxonomies.data ?? []).filter((t) => t.group === 'ACTIVITY' && t.status === 'ACTIVE')
+  const occasions = (taxonomies.data ?? []).filter((t) => t.group === 'OCCASION' && t.status === 'ACTIVE')
+  const vibes = (taxonomies.data ?? []).filter((t) => t.group === 'VIBE' && t.status === 'ACTIVE')
 
-      {activities.length > 0 && (
-        <nav aria-label="Tìm theo hoạt động" className="-mx-4 mt-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-          <ul className="flex gap-2 md:flex-wrap">
-            {activities.map((a) => (
-              <li key={a.id}>
-                <Link
-                  to={`/search?tagIds=${a.id}`}
-                  className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-sm whitespace-nowrap text-ink-muted hover:border-action hover:text-action"
+  function handleFilterSubmit() {
+    const params = new URLSearchParams()
+    if (areaId) params.set('areaId', areaId)
+    if (budget) params.set('budget', budget)
+    navigate(`/search?${params}`)
+  }
+
+  const currentCategoryTags =
+    activeCategoryTab === 'ACTIVITY' ? activities : activeCategoryTab === 'OCCASION' ? occasions : vibes
+
+  return (
+    <section aria-labelledby="search-heading" className="flex flex-col gap-5">
+      <div>
+        <h2 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9 text-ink">
+          {hero?.title || 'Tìm nơi hẹn hò lý tưởng'}
+        </h2>
+        <p className="mt-1 text-ink-muted">
+          {hero?.subtitle || 'Khám phá quán cà phê, nhà hàng và không gian dành riêng cho hai người.'}
+        </p>
+      </div>
+
+      {/* BẬC 1: THANH SEARCH NẰM RIÊNG MỘT BẬC VÀ TRẢI DÀI RA (Phong cách Pinterest Search) */}
+      <div className="w-full">
+        <PinterestSearchBar
+          placeholder="Tìm quán cà phê, nhà hàng lãng mạn, workshop, rooftop…"
+          onSubmitQuery={(q) => {
+            const params = new URLSearchParams()
+            if (q) params.set('q', q)
+            if (areaId) params.set('areaId', areaId)
+            if (budget) params.set('budget', budget)
+            navigate(`/search?${params}`)
+          }}
+        />
+      </div>
+
+      {/* BẬC 2: SẮP XẾP LẠI BỘ LỌC (FILTER LAYOUT) TRỰC QUAN & TINH GỌN */}
+      <div className="rounded-2xl border border-line bg-white p-4 shadow-xs md:p-5">
+        <div className="flex flex-col gap-4">
+          {/* Hàng filter nhanh: Khu vực + Ngân sách + Nút lọc */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[1.5fr_1.5fr_auto]">
+            {/* Lọc Khu vực */}
+            <label className="relative flex flex-col gap-1">
+              <span className="text-xs font-bold text-ink-muted">Khu vực hẹn hò</span>
+              <div className="relative">
+                <MapPin size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-action" aria-hidden="true" />
+                <select
+                  value={areaId}
+                  onChange={(e) => setAreaId(e.target.value)}
+                  className="min-h-11 w-full rounded-control border border-field/40 bg-page/50 pr-3 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:bg-white focus:outline-none"
                 >
-                  {a.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+                  <option value="">Tất cả khu vực (Sài Gòn)</option>
+                  {areas.data?.filter((a) => a.status === 'ACTIVE').map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+            {/* Lọc Ngân sách */}
+            <label className="relative flex flex-col gap-1">
+              <span className="text-xs font-bold text-ink-muted">Ngân sách cho 2 người</span>
+              <div className="relative">
+                <DollarSign size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-action" aria-hidden="true" />
+                <select
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="min-h-11 w-full rounded-control border border-field/40 bg-page/50 pr-3 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:bg-white focus:outline-none"
+                >
+                  <option value="">Mọi mức ngân sách</option>
+                  {BUDGETS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+            {/* Nút lọc nhanh */}
+            <div className="flex items-end">
+              <PrimaryButton onClick={handleFilterSubmit} className="min-h-11 w-full px-6">
+                <Filter size={16} aria-hidden="true" />
+                <span>Lọc địa điểm</span>
+              </PrimaryButton>
+            </div>
+          </div>
+
+          {/* Phân nhóm Tags: Hoạt động, Dịp hẹn, Không khí */}
+          <div className="border-t border-line/60 pt-3">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="text-xs font-bold text-ink-muted">Gợi ý theo chủ đề:</span>
+              <div className="flex rounded-lg bg-page p-0.5 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryTab('ACTIVITY')}
+                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                    activeCategoryTab === 'ACTIVITY' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  Hoạt động
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryTab('OCCASION')}
+                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                    activeCategoryTab === 'OCCASION' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  Dịp hẹn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryTab('VIBE')}
+                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                    activeCategoryTab === 'VIBE' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  Không khí
+                </button>
+              </div>
+            </div>
+
+            {currentCategoryTags.length > 0 && (
+              <nav aria-label="Tìm nhanh theo chủ đề" className="-mx-2 overflow-x-auto px-2 pb-1 md:mx-0 md:px-0">
+                <ul className="flex gap-2 md:flex-wrap">
+                  {currentCategoryTags.map((tag) => (
+                    <li key={tag.id}>
+                      <Link
+                        to={`/search?tagIds=${tag.id}${areaId ? `&areaId=${areaId}` : ''}${budget ? `&budget=${budget}` : ''}`}
+                        className="inline-flex min-h-9 items-center rounded-full border border-line bg-page/70 px-3.5 text-xs font-medium text-ink transition-colors hover:border-action hover:bg-action-soft hover:text-action whitespace-nowrap"
+                      >
+                        {tag.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+          </div>
+        </div>
+      </div>
     </section>
   )
 }
+
 
 function Collections() {
   const collections = useCollections()

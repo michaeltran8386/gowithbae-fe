@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { ChevronLeft, ChevronRight, List, LocateFixed, Map as MapIcon, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, DollarSign, List, LocateFixed, Map as MapIcon, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAreas, useSearchPlaces, useTaxonomies, type PlaceSearchParams } from '../hooks/places.ts'
 import { track } from '../lib/analytics.ts'
-import { budgetLabel } from '../lib/budgets.ts'
+import { BUDGETS, budgetLabel } from '../lib/budgets.ts'
 import { toVnIso, vnParts } from '../lib/format.ts'
 import { EMPTY_FILTERS, FilterPanel, countFilters, type Filters } from '../components/place/FilterPanel.tsx'
 import { PlaceGrid } from '../components/place/PlaceGrid.tsx'
 import { Dialog } from '../components/ui/Dialog.tsx'
 import { GhostButton, PrimaryButton, SecondaryButton } from '../components/ui/Button.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/StateView.tsx'
+import { PinterestSearchBar } from '../components/search/PinterestSearchBar.tsx'
 
 const PAGE_SIZE = 12
 type Sort = 'DEFAULT' | 'PRICE_ASC' | 'NEAREST'
@@ -108,26 +109,67 @@ export function SearchPage() {
   ]
 
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <h1 className="sr-only">Kết quả tìm kiếm</h1>
-      <SearchBox initial={q} onSubmit={(value) => update((p) => (value ? p.set('q', value) : p.delete('q')))} />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="hidden lg:block" aria-labelledby="filter-heading">
-          <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-block border border-line bg-white p-4">
-            <h2 id="filter-heading" className="mb-4 text-[17px] font-semibold">
-              Bộ lọc
-            </h2>
-            <FilterPanel idPrefix="desk" value={filters} onChange={applyFilters} areas={areas.data ?? []} taxonomies={taxonomies.data ?? []} />
-          </div>
-        </aside>
+      {/* BẬC 1: THANH TÌM KIẾM NẰM TRÊN MỘT BẬC RIÊNG VÀ TRẢI DÀI RA (Phong cách Pinterest) */}
+      <div className="w-full">
+        <PinterestSearchBar
+          initialValue={q}
+          placeholder="Tìm theo tên quán, khu vực, món ăn, hoạt động hẹn hò…"
+          onSubmitQuery={(value) => update((p) => (value ? p.set('q', value) : p.delete('q')))}
+        />
+      </div>
 
-        <section aria-labelledby="results-heading" className="min-w-0">
+      {/* BẬC 2: THANH CÔNG CỤ BỘ LỌC ĐƯỢC SẮP XẾP LẠI GỌN GÀNG, TRỰC QUAN */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-3 shadow-xs md:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Cụm bộ lọc nhanh bên trái */}
           <div className="flex flex-wrap items-center gap-2">
             <MobileFilters filters={filters} onApply={applyFilters} areas={areas.data ?? []} taxonomies={taxonomies.data ?? []} />
-            <h2 id="results-heading" aria-live="polite" className="mr-auto text-[15px] font-semibold tabular">
-              {results.data ? `${results.data.page.totalElements} địa điểm` : 'Đang tìm…'}
-            </h2>
+
+            {/* Bộ lọc khu vực nhanh */}
+            <div className="hidden sm:block">
+              <label className="relative flex items-center">
+                <span className="sr-only">Khu vực nhanh</span>
+                <MapPin size={15} className="pointer-events-none absolute left-2.5 text-action" aria-hidden="true" />
+                <select
+                  value={filters.areaId}
+                  onChange={(e) => applyFilters({ ...filters, areaId: e.target.value })}
+                  className="min-h-10 rounded-lg border border-field/40 bg-page/60 pr-7 pl-8 text-xs font-semibold text-ink transition-colors hover:border-action focus:border-action focus:bg-white"
+                >
+                  <option value="">Tất cả khu vực</option>
+                  {areas.data?.filter((a) => a.status === 'ACTIVE').map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="pointer-events-none absolute right-2 text-ink-muted" />
+              </label>
+            </div>
+
+            {/* Bộ lọc ngân sách nhanh */}
+            <div className="hidden sm:block">
+              <label className="relative flex items-center">
+                <span className="sr-only">Ngân sách nhanh</span>
+                <DollarSign size={15} className="pointer-events-none absolute left-2.5 text-action" aria-hidden="true" />
+                <select
+                  value={filters.budget}
+                  onChange={(e) => applyFilters({ ...filters, budget: e.target.value })}
+                  className="min-h-10 rounded-lg border border-field/40 bg-page/60 pr-7 pl-8 text-xs font-semibold text-ink transition-colors hover:border-action focus:border-action focus:bg-white"
+                >
+                  <option value="">Mọi ngân sách</option>
+                  {BUDGETS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="pointer-events-none absolute right-2 text-ink-muted" />
+              </label>
+            </div>
+
             <LocationButton
               active={!!origin}
               onLocate={(lat, lng) =>
@@ -139,60 +181,93 @@ export function SearchPage() {
                 })
               }
             />
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-ink-muted">Sắp xếp</span>
+          </div>
+
+          {/* Cụm đếm kết quả, sắp xếp và chế độ xem bên phải */}
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 id="results-heading" aria-live="polite" className="text-[14px] font-bold text-ink tabular">
+              {results.data ? `${results.data.page.totalElements} địa điểm` : 'Đang tìm…'}
+            </h2>
+
+            <label className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+              <span>Sắp xếp:</span>
               <select
                 value={sort}
                 onChange={(e) => update((p) => p.set('sort', e.target.value), { search: false })}
-                className="min-h-11 rounded-control border border-field bg-white px-3"
+                className="min-h-9 rounded-lg border border-field/40 bg-white px-2 text-xs font-semibold text-ink shadow-2xs hover:border-action focus:border-action"
               >
-                <option value="DEFAULT">Phù hợp</option>
+                <option value="DEFAULT">Phù hợp nhất</option>
                 <option value="PRICE_ASC">Giá thấp đến cao</option>
                 <option value="NEAREST" disabled={!origin}>
                   Gần nhất{origin ? '' : ' (cần vị trí)'}
                 </option>
               </select>
             </label>
-            <div role="group" aria-label="Cách hiển thị" className="flex rounded-control border border-line bg-white p-0.5">
+
+            <div role="group" aria-label="Cách hiển thị" className="flex rounded-lg border border-line bg-page p-0.5">
               {(['list', 'map'] as const).map((v) => (
                 <button
                   key={v}
                   type="button"
                   aria-pressed={view === v}
                   onClick={() => update((p) => (v === 'map' ? p.set('view', 'map') : p.delete('view')), { search: false, keepPage: true })}
-                  className={`inline-flex min-h-10 items-center gap-1.5 rounded-[8px] px-3 text-sm ${view === v ? 'bg-action-soft font-semibold text-action' : 'text-ink-muted'}`}
+                  className={`inline-flex min-h-8 items-center gap-1 rounded-md px-2.5 text-xs transition-colors ${
+                    view === v ? 'bg-white font-bold text-action shadow-2xs' : 'text-ink-muted hover:text-ink'
+                  }`}
                 >
-                  {v === 'list' ? <List size={16} aria-hidden="true" /> : <MapIcon size={16} aria-hidden="true" />}
+                  {v === 'list' ? <List size={14} aria-hidden="true" /> : <MapIcon size={14} aria-hidden="true" />}
                   {v === 'list' ? 'Danh sách' : 'Bản đồ'}
                 </button>
               ))}
             </div>
           </div>
+        </div>
 
-          {chips.length > 0 && (
-            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Điều kiện đang áp dụng">
+        {/* Danh sách chip các điều kiện lọc đang áp dụng */}
+        {chips.length > 0 && (
+          <div className="border-t border-line/60 pt-2.5">
+            <ul className="flex flex-wrap items-center gap-2" aria-label="Điều kiện đang áp dụng">
+              <li className="text-xs font-semibold text-ink-muted mr-1">Đang lọc theo:</li>
               {chips.map((c) => (
                 <li key={c.key}>
                   <button
                     type="button"
                     onClick={c.remove}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-full border border-action bg-action-soft pr-2 pl-3 text-[13px] font-semibold text-action"
+                    className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-action/40 bg-action-soft pr-2 pl-3 text-xs font-semibold text-action transition-colors hover:border-action hover:bg-action/10"
                   >
-                    {c.label}
-                    <X size={14} aria-hidden="true" />
+                    <span>{c.label}</span>
+                    <X size={13} aria-hidden="true" />
                     <span className="sr-only">Bỏ điều kiện này</span>
                   </button>
                 </li>
               ))}
               <li>
-                <button type="button" onClick={() => applyFilters(EMPTY_FILTERS)} className="min-h-9 px-2 text-[13px] text-ink-muted underline-offset-2 hover:underline">
+                <button
+                  type="button"
+                  onClick={() => applyFilters(EMPTY_FILTERS)}
+                  className="min-h-8 px-2 text-xs font-semibold text-ink-muted hover:text-danger hover:underline"
+                >
                   Xóa tất cả
                 </button>
               </li>
             </ul>
-          )}
+          </div>
+        )}
+      </div>
 
-          <div className="mt-4">
+      {/* BẬC 3: NỘI DUNG CHÍNH (SIDEBAR BỘ LỌC CHI TIẾT TRÊN DESKTOP + LƯỚI ĐỊA ĐIỂM) */}
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <aside className="hidden lg:block" aria-labelledby="filter-heading">
+          <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-line bg-white p-4 shadow-xs">
+            <h2 id="filter-heading" className="mb-4 text-[16px] font-bold text-ink">
+              Bộ lọc chi tiết
+            </h2>
+            <FilterPanel idPrefix="desk" value={filters} onChange={applyFilters} areas={areas.data ?? []} taxonomies={taxonomies.data ?? []} />
+          </div>
+        </aside>
+
+        <section aria-labelledby="results-heading" className="min-w-0">
+          <div>
             {view === 'map' ? (
               <EmptyState
                 icon={<MapIcon size={32} />}
@@ -234,36 +309,6 @@ export function SearchPage() {
   )
 }
 
-function SearchBox({ initial, onSubmit }: { initial: string; onSubmit: (q: string) => void }) {
-  const [value, setValue] = useState(initial)
-  useEffect(() => setValue(initial), [initial])
-  return (
-    <form
-      role="search"
-      className="flex gap-2"
-      onSubmit={(e) => {
-        e.preventDefault()
-        onSubmit(value.trim())
-      }}
-    >
-      <label className="relative flex-1">
-        <span className="sr-only">Tìm kiếm</span>
-        <Search size={18} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
-        <input
-          type="search"
-          value={value}
-          maxLength={100}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Tên quán, khu vực, hoạt động…"
-          className="min-h-12 w-full rounded-control border border-field bg-white pr-3 pl-10"
-        />
-      </label>
-      <PrimaryButton type="submit" className="min-h-12">
-        Tìm
-      </PrimaryButton>
-    </form>
-  )
-}
 
 function MobileFilters({
   filters,
