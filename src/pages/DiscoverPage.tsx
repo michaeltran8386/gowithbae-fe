@@ -17,16 +17,61 @@ import { PrimaryButton } from '../components/ui/Button.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { PinterestSearchBar } from '../components/search/PinterestSearchBar.tsx'
 
-/** S-01 Khám phá — FR-01; khu "Tiếp tục" (hướng B+) gồm lời nhắc FR-18, phiên cùng chọn, buổi hẹn sắp tới. */
+/** S-01 Khám phá — bố cục cột giữa gọn như MochiVocab kèm nền mây hai bên, lưới gợi ý 2 ảnh/hàng. */
 export function DiscoverPage() {
   const { state } = useAuth()
   return (
-    <div className="flex flex-col gap-10">
-      <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
-      {state.status === 'member' && <ContinueSection />}
-      <SearchHero />
-      <ChoiceCallout />
-      <Collections />
+    <>
+      <DiscoverSideBackdrop />
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl border border-line/80 bg-white/95 p-4 shadow-raised sm:gap-10 sm:p-7 md:p-8">
+        <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
+        {state.status === 'member' && <ContinueSection />}
+        <SearchHero />
+        <ChoiceCallout />
+        <Collections />
+      </div>
+    </>
+  )
+}
+
+/** Nền trời & mây hai bên khoảng trống màn hình rộng (tham khảo bố cục MochiVocab). */
+function DiscoverSideBackdrop() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-16 bottom-0 -z-10 overflow-hidden bg-[linear-gradient(180deg,#dff2fc_0%,#eef7fc_55%,#f4f8fa_100%)]"
+    >
+      {/* Quầng sáng mềm hai bên */}
+      <div className="absolute -top-24 -left-24 hidden size-96 rounded-full bg-sky-100/55 blur-3xl lg:block" />
+      <div className="absolute top-20 -right-24 hidden size-96 rounded-full bg-peach-50/80 blur-3xl lg:block" />
+
+      {/* Đám mây trên bên trái */}
+      <svg viewBox="0 0 260 120" className="absolute top-12 -left-10 hidden w-56 text-white/85 lg:block xl:w-72" fill="currentColor">
+        <path d="M24 102h196c18 0 32-13 32-29 0-15-12-27-27-29-5-21-24-36-47-36-19 0-36 10-44 26-6-4-14-6-22-6-22 0-40 17-42 38-15 2-26 14-26 29 0 16 12 7 20 7Z" />
+      </svg>
+
+      {/* Đám mây trên bên phải */}
+      <svg viewBox="0 0 260 120" className="absolute top-28 -right-10 hidden w-56 text-white/85 lg:block xl:w-72" fill="currentColor">
+        <path d="M36 104h192c17 0 30-12 30-28s-13-28-29-29c-4-23-24-40-48-40-20 0-37 11-45 28-7-5-16-8-26-8-23 0-42 18-43 41-15 2-26 14-26 28 0 12 10 8 25 8Z" />
+      </svg>
+
+      {/* Lớp mây chân trời bên trái */}
+      <svg viewBox="0 0 420 190" className="absolute bottom-0 -left-8 hidden w-80 text-white/95 lg:block xl:w-[440px]" fill="currentColor">
+        <path d="M0 190V116c22-18 54-24 84-14 14-30 46-50 82-50 38 0 71 22 84 54 14-9 31-14 50-12 34 3 62 29 66 63 14 2 28 11 36 33H0Z" />
+      </svg>
+
+      {/* Lớp mây chân trời bên phải */}
+      <svg viewBox="0 0 420 190" className="absolute -right-8 bottom-0 hidden w-80 text-white/95 lg:block xl:w-[440px]" fill="currentColor">
+        <path d="M420 190V112c-22-17-54-22-82-12-15-31-47-52-84-52-37 0-70 21-83 52-15-8-33-11-51-8-33 5-59 31-63 64-15 3-28 13-37 34h400Z" />
+      </svg>
+
+      {/* Điểm nhấn trái tim & sao nhỏ hai bên lề */}
+      <svg viewBox="0 0 24 24" className="absolute top-64 left-12 hidden size-7 text-heart/45 xl:block" fill="currentColor">
+        <path d="M12 20.5s-7.2-4.5-9.4-8.8C1 8.4 3.1 4.5 6.8 4.5c2.1 0 3.4 1.2 5.2 3.2 1.8-2 3.1-3.2 5.2-3.2 3.7 0 5.8 3.9 4.2 7.2-2.2 4.3-9.4 8.8-9.4 8.8z" />
+      </svg>
+      <svg viewBox="0 0 24 24" className="absolute top-72 right-14 hidden size-6 text-sky/35 xl:block" fill="currentColor">
+        <path d="M12 20.5s-7.2-4.5-9.4-8.8C1 8.4 3.1 4.5 6.8 4.5c2.1 0 3.4 1.2 5.2 3.2 1.8-2 3.1-3.2 5.2-3.2 3.7 0 5.8 3.9 4.2 7.2-2.2 4.3-9.4 8.8-9.4 8.8z" />
+      </svg>
     </div>
   )
 }
@@ -44,7 +89,7 @@ function ContinueSection() {
 
   if (plans.isPending || sessions.isPending)
     return (
-      <div className="grid gap-3 md:grid-cols-3" aria-hidden="true">
+      <div className="grid gap-3 sm:grid-cols-2" aria-hidden="true">
         <Skeleton className="h-36" />
         <Skeleton className="h-36" />
       </div>
@@ -56,7 +101,7 @@ function ContinueSection() {
       <h2 id="continue-heading" className="mb-3 text-[17px] font-semibold">
         Tiếp tục
       </h2>
-      <div className="grid items-start gap-3 md:grid-cols-3">
+      <div className="grid items-start gap-3 sm:grid-cols-2">
         {due.map((p) => (
           <VisitReminderTicket key={p.id} plan={p} />
         ))}
@@ -144,10 +189,10 @@ function SearchHero() {
       </div>
 
       {/* BẬC 2: SẮP XẾP LẠI BỘ LỌC (FILTER LAYOUT) TRỰC QUAN & TINH GỌN */}
-      <div className="rounded-2xl border border-line bg-white p-4 shadow-xs md:p-5">
+      <div className="rounded-2xl border border-line bg-page/55 p-4 md:p-5">
         <div className="flex flex-col gap-4">
           {/* Hàng filter nhanh: Khu vực + Ngân sách + Nút lọc */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[1.5fr_1.5fr_auto]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[1.65fr_1.35fr_auto]">
             {/* Lọc Khu vực */}
             <label className="relative flex flex-col gap-1">
               <span className="text-xs font-bold text-ink-muted">Khu vực hẹn hò</span>
@@ -156,7 +201,7 @@ function SearchHero() {
                 <select
                   value={areaId}
                   onChange={(e) => setAreaId(e.target.value)}
-                  className="min-h-11 w-full rounded-control border border-field/40 bg-page/50 pr-3 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:bg-white focus:outline-none"
+                  className="min-h-11 w-full rounded-control border border-field/40 bg-white pr-2 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:outline-none"
                 >
                   <option value="">Tất cả khu vực (Sài Gòn)</option>
                   {areas.data?.filter((a) => a.status === 'ACTIVE').map((a) => (
@@ -176,7 +221,7 @@ function SearchHero() {
                 <select
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="min-h-11 w-full rounded-control border border-field/40 bg-page/50 pr-3 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:bg-white focus:outline-none"
+                  className="min-h-11 w-full rounded-control border border-field/40 bg-white pr-2 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:outline-none"
                 >
                   <option value="">Mọi mức ngân sách</option>
                   {BUDGETS.map((b) => (
@@ -190,7 +235,7 @@ function SearchHero() {
 
             {/* Nút lọc nhanh */}
             <div className="flex items-end">
-              <PrimaryButton onClick={handleFilterSubmit} className="min-h-11 w-full px-6">
+              <PrimaryButton onClick={handleFilterSubmit} className="min-h-11 w-full px-4 whitespace-nowrap">
                 <Filter size={16} aria-hidden="true" />
                 <span>Lọc địa điểm</span>
               </PrimaryButton>
@@ -256,7 +301,7 @@ function SearchHero() {
 }
 
 /**
- * Bộ sưu tập dạng lưới 2×2 (mobile) / 4 cột (desktop). Bấm vào mở popup giữa màn hình, không chuyển trang;
+ * Bộ sưu tập dạng thẻ ảnh 2 cột (2 ảnh/hàng). Bấm vào mở popup giữa màn hình, không chuyển trang;
  * id nằm trên URL (?collection=) để nút Quay lại đóng popup và gửi link được.
  */
 function Collections() {
@@ -273,7 +318,7 @@ function Collections() {
   if (collections.isError) return <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
   if (collections.isPending)
     return (
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-hidden="true">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="aspect-[4/3]" />
         ))}
@@ -283,10 +328,10 @@ function Collections() {
 
   return (
     <section aria-labelledby="collections-heading">
-      <h2 id="collections-heading" className="mb-3 text-xl font-bold">
+      <h2 id="collections-heading" className="mb-3.5 text-xl font-bold text-ink">
         Gợi ý cho bạn
       </h2>
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3.5 sm:gap-4">
         {collections.data.map((c) => (
           <li key={c.id}>
             <button
@@ -298,7 +343,7 @@ function Collections() {
               {c.coverUrl && (
                 <img src={c.coverUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none" />
               )}
-              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(20_50_74/.78))] px-3 pt-8 pb-2.5 text-[15px] leading-5 font-semibold text-white">
+              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(20_50_74/.78))] px-3.5 pt-8 pb-3 text-[15px] leading-5 font-semibold text-white sm:text-base">
                 <span className="line-clamp-2">{c.title}</span>
               </span>
             </button>
