@@ -1,4 +1,5 @@
 import { createContext, use, useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 type Toast = { id: number; message: string; tone: 'info' | 'error'; action?: { label: string; onClick: () => void } }
@@ -10,6 +11,9 @@ const ToastContext = createContext<ToastApi | null>(null)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  // Đang mở cửa sổ nội dung lớn (<dialog data-toast-host>, vd. popup bộ sưu tập) thì mọi thứ bên ngoài bị khóa:
+  // hiện toast bên trong để nút "Hoàn tác" vẫn bấm được. Hộp xác nhận nhỏ thì không (chúng đóng ngay sau thao tác).
+  const [host, setHost] = useState<HTMLDialogElement | null>(null)
   const seq = useRef(0)
 
   const dismiss = useCallback((id: number) => setToasts((all) => all.filter((t) => t.id !== id)), [])
@@ -18,6 +22,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     () => ({
       show: (message, options = {}) => {
         const id = ++seq.current
+        setHost(typeof document === 'undefined' ? null : document.querySelector<HTMLDialogElement>('dialog[open][data-toast-host]'))
         setToasts((all) => [...all.slice(-2), { id, message, tone: options.tone ?? 'info', action: options.action }])
         setTimeout(() => dismiss(id), options.action ? 6000 : 4000)
       },
@@ -25,9 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [dismiss],
   )
 
-  return (
-    <ToastContext value={api}>
-      {children}
+  const region = (
       <div
         aria-live="polite"
         className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex flex-col items-center gap-2 px-4 md:bottom-6"
@@ -59,6 +62,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           </div>
         ))}
       </div>
+  )
+
+  return (
+    <ToastContext value={api}>
+      {children}
+      {host?.open && host.isConnected ? createPortal(region, host) : region}
     </ToastContext>
   )
 }

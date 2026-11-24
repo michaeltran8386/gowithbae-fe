@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { CalendarClock, ChevronRight, MapPin, Search, Users } from 'lucide-react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { CalendarClock, MapPin, Search, Users } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { useAuth } from '../app/auth.tsx'
 import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
@@ -12,6 +12,7 @@ import { useNow } from '../hooks/useNow.ts'
 import { BUDGETS } from '../lib/budgets.ts'
 import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
 import { ChoiceCallout } from '../components/choice/InviteEntry.tsx'
+import { CollectionDialog } from '../components/place/CollectionDialog.tsx'
 import { PrimaryButton } from '../components/ui/Button.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 
@@ -179,14 +180,27 @@ function SearchHero() {
   )
 }
 
+/**
+ * Bộ sưu tập dạng lưới 2×2 (mobile) / 4 cột (desktop). Bấm vào mở popup giữa màn hình, không chuyển trang;
+ * id nằm trên URL (?collection=) để nút Quay lại đóng popup và gửi link được.
+ */
 function Collections() {
   const collections = useCollections()
+  const [params, setParams] = useSearchParams()
+  const openId = params.get('collection')
+  const setOpen = (id: string | null) => {
+    const next = new URLSearchParams(params)
+    if (id) next.set('collection', id)
+    else next.delete('collection')
+    setParams(next, { replace: !id, preventScrollReset: true })
+  }
+
   if (collections.isError) return <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
   if (collections.isPending)
     return (
-      <div className="grid gap-4 md:grid-cols-3" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-40" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="aspect-[4/3]" />
         ))}
       </div>
     )
@@ -195,26 +209,28 @@ function Collections() {
   return (
     <section aria-labelledby="collections-heading">
       <h2 id="collections-heading" className="mb-3 text-xl font-bold">
-        Bộ sưu tập
+        Gợi ý cho bạn
       </h2>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-3 md:px-0">
+      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {collections.data.map((c) => (
-          <li key={c.id} className="w-[78%] shrink-0 snap-start md:w-auto">
-            <Link
-              to={`/collections/${c.id}`}
-              className="group flex h-full flex-col overflow-hidden rounded-block border border-line bg-white hover:border-action"
+          <li key={c.id}>
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => setOpen(c.id)}
+              className="group relative block aspect-[4/3] w-full overflow-hidden rounded-block border border-line bg-[linear-gradient(160deg,var(--color-sky-100),var(--color-action-soft)_55%,var(--color-peach-50))] text-left transition-transform hover:-translate-y-0.5 hover:shadow-raised focus-visible:outline-2 focus-visible:outline-action motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <div className="aspect-[16/9] bg-[linear-gradient(160deg,var(--color-sky-100),var(--color-action-soft)_55%,var(--color-peach-50))]">
-                {c.coverUrl && <img src={c.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
-              </div>
-              <span className="flex items-center justify-between gap-2 p-4 font-semibold group-hover:text-action">
-                {c.title}
-                <ChevronRight size={18} aria-hidden="true" />
+              {c.coverUrl && (
+                <img src={c.coverUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none" />
+              )}
+              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(20_50_74/.78))] px-3 pt-8 pb-2.5 text-[15px] leading-5 font-semibold text-white">
+                <span className="line-clamp-2">{c.title}</span>
               </span>
-            </Link>
+            </button>
           </li>
         ))}
       </ul>
+      {openId && <CollectionDialog collectionId={openId} onClose={() => setOpen(null)} />}
     </section>
   )
 }

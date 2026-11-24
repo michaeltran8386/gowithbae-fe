@@ -9,8 +9,11 @@ type CartContextValue = {
   state: { activeListId: string | null }
   actions: {
     setActiveList: (id: string | null) => void
-    /** Gắn phần tử đích (icon list ở mép phải) để hiệu ứng biết bay về đâu. */
-    registerDock: (el: HTMLElement | null) => void
+    /**
+     * Gắn phần tử đích của hiệu ứng bay. Dùng như callback ref (React 19 nhận hàm dọn dẹp):
+     * đích mới nhất thắng, gỡ ra thì trả về đích trước (vd. popup bộ sưu tập che icon list nổi).
+     */
+    registerDock: (el: HTMLElement | null) => (() => void) | undefined
     /** Bay một ảnh thu nhỏ từ `from` vào icon list, rồi làm icon "nảy". */
     flyToDock: (from: HTMLElement | null, imageUrl?: string | null) => void
     bumpDock: () => void
@@ -25,10 +28,11 @@ const prefersReducedMotion = () =>
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [activeListId, setActiveListId] = useState<string | null>(() => readStorage(KEY))
-  const dock = useRef<HTMLElement | null>(null)
+  const docks = useRef<HTMLElement[]>([])
+  const currentDock = () => docks.current.at(-1) ?? null
 
   const bumpDock = useCallback(() => {
-    const el = dock.current
+    const el = currentDock()
     if (!el || typeof el.animate !== 'function' || prefersReducedMotion()) return
     el.animate(
       [{ transform: 'scale(1)' }, { transform: 'scale(1.22)' }, { transform: 'scale(.94)' }, { transform: 'scale(1)' }],
@@ -38,7 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const flyToDock = useCallback(
     (from: HTMLElement | null, imageUrl?: string | null) => {
-      const target = dock.current
+      const target = currentDock()
       if (!from || !target || prefersReducedMotion() || typeof document.body.animate !== 'function') {
         bumpDock()
         return
@@ -67,7 +71,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         background: imageUrl ? `center / cover no-repeat url("${imageUrl.replace(/"/g, '%22')}")` : 'var(--color-heart)',
         willChange: 'transform, opacity',
       } satisfies Partial<CSSStyleDeclaration>)
-      document.body.appendChild(ghost)
+      // Đích nằm trong <dialog> (top layer) thì ảnh bay cũng phải ở trong đó mới không bị lớp phủ che.
+      ;(target.closest('dialog') ?? document.body).appendChild(ghost)
 
       // Đường cong: bay vọt lên một chút rồi lượn vào icon (giữa hành trình nâng lên ~80px).
       const lift = Math.min(120, Math.abs(dy) * 0.35 + 60)
@@ -99,7 +104,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           writeStorage(KEY, id)
         },
         registerDock: (el) => {
-          dock.current = el
+          if (!el) return undefined
+          docks.current.push(el)
+          return () => {
+            docks.current = docks.current.filter((d) => d !== el)
+          }
         },
         flyToDock,
         bumpDock,
