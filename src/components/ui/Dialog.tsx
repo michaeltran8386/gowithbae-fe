@@ -13,6 +13,7 @@ export function Dialog({
   description,
   children,
   footer,
+  size = 'md',
 }: {
   open: boolean
   onClose: () => void
@@ -20,6 +21,8 @@ export function Dialog({
   description?: ReactNode
   children?: ReactNode
   footer?: ReactNode
+  /** md: hộp thoại thường; xl: cửa sổ nội dung lớn giữa màn hình (vd. popup bộ sưu tập). */
+  size?: 'md' | 'xl'
 }) {
   const ref = useRef<HTMLDialogElement>(null)
 
@@ -42,7 +45,10 @@ export function Dialog({
         if (e.target === ref.current) onClose()
       }}
       aria-labelledby="dialog-title"
-      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overscroll-contain rounded-t-[20px] bg-white p-0 text-ink shadow-raised backdrop:bg-ink/40 md:m-auto md:max-w-lg md:rounded-block"
+      data-toast-host={size === 'xl' ? '' : undefined}
+      className={`m-0 mt-auto max-h-[90dvh] w-full max-w-none overscroll-contain rounded-t-[20px] bg-white p-0 text-ink shadow-raised backdrop:bg-ink/40 md:m-auto md:rounded-block ${
+        size === 'xl' ? 'animate-dialog-in md:max-w-5xl' : 'md:max-w-lg'
+      }`}
     >
       {open && (
         <div className="flex max-h-[90dvh] flex-col">
