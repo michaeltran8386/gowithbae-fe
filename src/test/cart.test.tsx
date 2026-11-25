@@ -46,6 +46,17 @@ describe('Giỏ hẹn (CR-002)', () => {
     await waitFor(() => expect(db.savedLists.find((l) => l.name === 'Dịp kỷ niệm')?.items.some((i) => i.placeId === placeId(1))).toBe(true))
   })
 
+  it('thẻ "Đang hot" ở trang chủ có cả tim và + ; bấm + thêm vào danh sách đang chọn', async () => {
+    const { user } = renderApp('/', { member: true })
+    const hot = await screen.findByRole('region', { name: /Đang hot/ })
+    const add = (await within(hot).findAllByRole('button', { name: /^Thêm .+ vào danh sách$/ }))[0]
+    const name = add.getAttribute('aria-label')!.replace(/^Thêm (.+) vào danh sách$/, '$1')
+    expect(within(hot).getByRole('button', { name: new RegExp(`^(Bỏ lưu|Lưu) ${name}$`) })).toBeInTheDocument()
+    await waitFor(() => expect(add).toBeEnabled())
+    await user.click(add)
+    expect(await screen.findByText(new RegExp(`Đã thêm “${name}” vào “`))).toBeInTheDocument()
+  })
+
   it('thanh điều hướng không còn tab Đã lưu; icon giỏ ở header dẫn tới Giỏ hẹn', async () => {
     renderApp('/', { member: true })
     const cart = await screen.findByRole('link', { name: /^Giỏ hẹn/ })
