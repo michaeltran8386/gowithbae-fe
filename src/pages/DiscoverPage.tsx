@@ -14,7 +14,7 @@ import { MOCKUP_TOPICS } from '../components/discover/CategoryThumb.tsx'
 import { CollectionDialog } from '../components/place/CollectionDialog.tsx'
 import { PlaceCard } from '../components/place/PlaceCard.tsx'
 import { PlaceMedia } from '../components/place/PlaceMedia.tsx'
-import { SaveButton } from '../components/place/SaveToList.tsx'
+import { AddToListButton, SaveButton } from '../components/place/SaveToList.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { PinterestSearchBar } from '../components/search/PinterestSearchBar.tsx'
 
@@ -368,9 +368,10 @@ function HotAndChoiceBento() {
                   >
                     <div className="relative aspect-[16/10] overflow-hidden rounded-t-2xl bg-[#f5eff5]">
                       <PlaceMedia url={p.coverUrl} name={p.name} />
-                      {/* Nút tim nhỏ trong suốt ở góc trên phải đúng như ảnh thiết kế */}
-                      <div className="absolute top-2 right-2 z-10">
+                      {/* Tim (lưu vào "Đã lưu") + nút + (thêm vào danh sách đang chọn), kiểu trong suốt như thiết kế */}
+                      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
                         <SaveButton placeId={p.id} placeName={p.name} variant="glass" />
+                        <AddToListButton place={p} variant="glass" />
                       </div>
                       {(tagText || price) && (
                         <div aria-hidden="true" className="pointer-events-none absolute inset-x-2 bottom-2 flex">

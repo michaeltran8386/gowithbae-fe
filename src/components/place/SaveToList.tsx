@@ -113,7 +113,7 @@ export function SaveButton({ placeId, placeName, variant = 'icon' }: { placeId: 
  * Nút "+": thêm nơi vào danh sách đang chọn và cho ảnh bay vào icon list ở mép phải (CR-002).
  * Chưa có danh sách thường nào thì tự tạo "Danh sách 1".
  */
-export function AddToListButton({ place, className = '' }: { place: Place; className?: string }) {
+export function AddToListButton({ place, className = '', variant = 'icon' }: { place: Place; className?: string; variant?: 'icon' | 'glass' }) {
   const { state } = useAuth()
   const member = state.status === 'member'
   const navigate = useNavigate()
@@ -147,6 +147,22 @@ export function AddToListButton({ place, className = '' }: { place: Place; class
     } catch (e) {
       toast.show(problemMessage(e), { tone: 'error' })
     }
+  }
+
+  if (variant === 'glass') {
+    // Cùng kiểu nút tim trong suốt trên ảnh thẻ nhỏ (Đang hot ở trang chủ).
+    return (
+      <button
+        ref={button}
+        type="button"
+        aria-label={`Thêm ${place.name} vào danh sách`}
+        onClick={() => void add()}
+        disabled={busy}
+        className={`inline-flex size-7 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-xs transition-colors hover:bg-black/55 disabled:opacity-50 ${className}`}
+      >
+        <Plus size={16} strokeWidth={2.75} aria-hidden="true" />
+      </button>
+    )
   }
 
   return (
