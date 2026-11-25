@@ -6,6 +6,7 @@ import { track } from '../lib/analytics.ts'
 import { BUDGETS, budgetLabel } from '../lib/budgets.ts'
 import { toVnIso, vnParts } from '../lib/format.ts'
 import { EMPTY_FILTERS, FilterPanel, countFilters, type Filters } from '../components/place/FilterPanel.tsx'
+import { MiniMapView } from '../components/place/MiniMapView.tsx'
 import { PlaceGrid } from '../components/place/PlaceGrid.tsx'
 import { Dialog } from '../components/ui/Dialog.tsx'
 import { GhostButton, PrimaryButton, SecondaryButton } from '../components/ui/Button.tsx'
@@ -269,17 +270,25 @@ export function SearchPage() {
         <section aria-labelledby="results-heading" className="min-w-0">
           <div>
             {view === 'map' ? (
-              <EmptyState
-                icon={<MapIcon size={32} />}
-                title="Bản đồ chưa sẵn sàng"
-                action={
-                  <SecondaryButton onClick={() => update((p) => p.delete('view'), { search: false, keepPage: true })} icon={<List size={18} aria-hidden="true" />}>
-                    Xem danh sách
-                  </SecondaryButton>
-                }
-              >
-                Nhà cung cấp bản đồ đang được lựa chọn. Danh sách vẫn đầy đủ kết quả và bộ lọc của bạn.
-              </EmptyState>
+              results.isError ? (
+                <ErrorState error={results.error} onRetry={() => results.refetch()} />
+              ) : results.isPending ? (
+                <Skeleton className="h-[480px]" />
+              ) : results.data.items.length === 0 ? (
+                <EmptyState
+                  icon={<MapIcon size={32} />}
+                  title="Không có địa điểm để hiển thị trên bản đồ"
+                  action={
+                    <SecondaryButton onClick={() => update((p) => p.delete('view'), { search: false, keepPage: true })} icon={<List size={18} aria-hidden="true" />}>
+                      Xem danh sách
+                    </SecondaryButton>
+                  }
+                >
+                  Thử bỏ bớt điều kiện lọc hoặc đổi từ khóa tìm kiếm.
+                </EmptyState>
+              ) : (
+                <MiniMapView places={results.data.items} />
+              )
             ) : results.isError ? (
               <ErrorState error={results.error} onRetry={() => results.refetch()} />
             ) : results.isPending ? (
