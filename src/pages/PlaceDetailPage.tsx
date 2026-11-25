@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { CalendarPlus, ChevronRight, Clock, Flag, MapPin, Navigation, Phone, Wallet } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { isStatus, problemMessage } from '../api/problem.ts'
@@ -19,9 +19,12 @@ import { useToast } from '../components/ui/Toast.tsx'
 import { NotFoundPage } from './NotFoundPage.tsx'
 import { useNow } from '../hooks/useNow.ts'
 
+type PlacePreview = { name?: string; coverUrl?: string | null; categoryName?: string | null; areaName?: string | null }
+
 /** S-04 Chi tiết địa điểm — FR-05 (thứ tự nội dung cố định), FR-06/09/15/19. Không có sao/đánh giá. */
 export function PlaceDetailPage() {
   const { placeId = '' } = useParams()
+  const preview = (useLocation().state as { preview?: PlacePreview } | null)?.preview
   const place = usePlace(placeId)
 
   useEffect(() => {
@@ -30,10 +33,50 @@ export function PlaceDetailPage() {
 
   if (place.isPending)
     return (
-      <div className="flex flex-col gap-4" aria-busy="true">
-        <Skeleton className="aspect-[4/3] md:aspect-[21/9]" />
-        <Skeleton className="h-8 w-2/3" />
-        <Skeleton className="h-24" />
+      <div className="flex flex-col gap-5" aria-busy="true" aria-label="Đang tải thông tin địa điểm">
+        {/* Kéo hình ảnh quán trước ngay lập tức nếu có preview, hoặc hiện khung shimmer */}
+        <div className="relative -mx-4 aspect-[4/3] overflow-hidden bg-action-soft md:mx-0 md:aspect-[21/9] md:rounded-block">
+          {preview?.coverUrl ? (
+            <PlaceMedia url={preview.coverUrl} name={preview.name ?? 'Địa điểm'} eager />
+          ) : (
+            <Skeleton className="h-full w-full rounded-none" />
+          )}
+        </div>
+
+        {/* Lần lượt hiển thị các khối thông tin dạng skeleton mượt mà */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="flex min-w-0 flex-col gap-4">
+            <div className="animate-reveal-up" style={{ animationDelay: '40ms' }}>
+              {preview?.name ? (
+                <>
+                  <h1 className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">{preview.name}</h1>
+                  <p className="mt-1 text-ink-muted">
+                    {[preview.categoryName, preview.areaName].filter(Boolean).join(' · ') || 'Đang tải thông tin…'}
+                  </p>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-8 w-2/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              )}
+            </div>
+
+            <div className="animate-reveal-up grid grid-cols-3 gap-2" style={{ animationDelay: '90ms' }}>
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
+
+            <Skeleton className="animate-reveal-up h-24" style={{ animationDelay: '140ms' }} />
+            <Skeleton className="animate-reveal-up h-32" style={{ animationDelay: '190ms' }} />
+            <Skeleton className="animate-reveal-up h-24" style={{ animationDelay: '240ms' }} />
+          </div>
+
+          <div className="hidden lg:block">
+            <Skeleton className="animate-reveal-up h-60" style={{ animationDelay: '110ms' }} />
+          </div>
+        </div>
       </div>
     )
   if (place.isError)
@@ -85,7 +128,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="flex min-w-0 flex-col gap-4">
-          <header>
+          <header className="animate-reveal-up" style={{ animationDelay: '40ms' }}>
             <h1 className="text-2xl leading-8 font-bold md:text-3xl md:leading-9">{place.name}</h1>
             <p className="mt-1 text-ink-muted">
               {[place.category?.name, place.area?.name].filter(Boolean).join(' · ') || 'Chưa có thông tin loại hình'}
@@ -99,7 +142,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
           </header>
 
           {/* Dải thông tin quyết định (hướng B+) */}
-          <dl className="grid grid-cols-3 gap-2">
+          <dl className="animate-reveal-up grid grid-cols-3 gap-2" style={{ animationDelay: '90ms' }}>
             <Fact icon={<Wallet size={18} />} label="Giá cho hai người">
               {price ? <span className="tabular">{price}</span> : <UnknownValue />}
             </Fact>
@@ -111,7 +154,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
             </Fact>
           </dl>
 
-          <Section title="Giá">
+          <Section title="Giá" delay={130}>
             {price ? (
               <p>
                 <span className="font-semibold tabular">{price}</span> cho hai người
@@ -128,16 +171,16 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
             )}
           </Section>
 
-          <Section title="Trải nghiệm">
+          <Section title="Trải nghiệm" delay={170}>
             {place.description ? <p className="max-w-[70ch]">{place.description}</p> : <UnknownValue>Chưa có mô tả</UnknownValue>}
             {experience.length > 0 && <TagList tags={experience} />}
           </Section>
 
-          <Section title="Tiện ích">
+          <Section title="Tiện ích" delay={210}>
             {amenities.length ? <TagList tags={amenities} /> : <UnknownValue />}
           </Section>
 
-          <Section title="Giờ mở cửa và địa chỉ">
+          <Section title="Giờ mở cửa và địa chỉ" delay={250}>
             <HoursTable hours={place.hours} />
             <p className="mt-3 flex items-start gap-2">
               <MapPin size={18} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />
@@ -145,12 +188,12 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
             </p>
           </Section>
 
-          <Section title="Lưu ý">
+          <Section title="Lưu ý" delay={290}>
             {place.reservationRecommended && <p>Nên liên hệ đặt trước với địa điểm.</p>}
             {place.notes ? <p>{place.notes}</p> : !place.reservationRecommended && <UnknownValue>Chưa có lưu ý</UnknownValue>}
           </Section>
 
-          <footer className="flex flex-wrap items-center justify-between gap-3 text-[13px] text-ink-muted">
+          <footer className="animate-reveal-up flex flex-wrap items-center justify-between gap-3 text-[13px] text-ink-muted" style={{ animationDelay: '320ms' }}>
             <span>Cập nhật: {place.verifiedAt ? formatPlainDate(place.verifiedAt) : 'chưa có thông tin'}</span>
             <button type="button" onClick={() => setReportOpen(true)} className="inline-flex min-h-11 items-center gap-1.5 hover:text-action">
               <Flag size={16} aria-hidden="true" /> Báo thông tin sai
@@ -159,7 +202,7 @@ function PlaceDetail({ place }: { place: Schemas['PlaceDetail'] }) {
         </div>
 
         {/* Cột quyết định: desktop sticky, mobile thành action bar đáy */}
-        <aside aria-label="Hành động" className="hidden lg:block">
+        <aside aria-label="Hành động" className="animate-reveal-up hidden lg:block" style={{ animationDelay: '110ms' }}>
           <div className="sticky top-20 flex flex-col gap-3 rounded-block border border-line bg-white p-4">
             <p className="text-[13px] text-ink-muted">Giá cho hai người</p>
             <p className="-mt-2 text-xl font-bold tabular">{price ?? <UnknownValue />}</p>
@@ -241,9 +284,9 @@ function Fact({ icon, label, children }: { icon: React.ReactNode; label: string;
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
   return (
-    <section className="rounded-block border border-line bg-white p-4">
+    <section className="animate-reveal-up rounded-block border border-line bg-white p-4" style={delay ? { animationDelay: `${delay}ms` } : undefined}>
       <h2 className="mb-2 text-[17px] font-semibold">{title}</h2>
       <div className="flex flex-col gap-2">{children}</div>
     </section>

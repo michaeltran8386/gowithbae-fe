@@ -53,8 +53,14 @@ export function ErrorState({ error, onRetry, title }: { error: unknown; onRetry?
   )
 }
 
-export function Skeleton({ className = '' }: { className?: string }) {
-  return <div aria-hidden="true" className={`animate-pulse rounded-block bg-action-soft ${className}`} />
+export function Skeleton({ className = '', style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={style}
+      className={`animate-shimmer rounded-block bg-[linear-gradient(90deg,var(--color-action-soft)_25%,#fff5f9_50%,var(--color-action-soft)_75%)] bg-[length:200%_100%] ${className}`}
+    />
+  )
 }
 
 /** Thiếu dữ liệu: hiển thị đúng chỗ, không ẩn mục, không đổi thành "Không có" (RULE-04). */

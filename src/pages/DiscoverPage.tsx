@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { CalendarClock, DollarSign, Filter, MapPin, Users } from 'lucide-react'
-import type { Schemas } from '../api/client.ts'
+import { api, type Schemas } from '../api/client.ts'
+import { unwrap } from '../api/problem.ts'
 import { useAuth } from '../app/auth.tsx'
 import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
 import { useSiteContent } from '../hooks/adminSupport.ts'
@@ -306,6 +308,7 @@ function SearchHero() {
  */
 function Collections() {
   const collections = useCollections()
+  const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
   const openId = params.get('collection')
   const setOpen = (id: string | null) => {
@@ -313,6 +316,13 @@ function Collections() {
     if (id) next.set('collection', id)
     else next.delete('collection')
     setParams(next, { replace: !id, preventScrollReset: true })
+  }
+  const prefetchCollection = (id: string) => {
+    void qc.prefetchQuery({
+      queryKey: ['collections', id],
+      queryFn: () => unwrap(api.GET('/collections/{collectionId}', { params: { path: { collectionId: id } } })),
+      staleTime: 60_000,
+    })
   }
 
   if (collections.isError) return <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
@@ -338,12 +348,22 @@ function Collections() {
               type="button"
               aria-haspopup="dialog"
               onClick={() => setOpen(c.id)}
+              onMouseEnter={() => prefetchCollection(c.id)}
+              onFocus={() => prefetchCollection(c.id)}
               className="group relative block aspect-[4/3] w-full overflow-hidden rounded-block border border-line bg-[linear-gradient(160deg,var(--color-sky-100),var(--color-action-soft)_55%,var(--color-peach-50))] text-left transition-transform hover:-translate-y-0.5 hover:shadow-raised focus-visible:outline-2 focus-visible:outline-action motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               {c.coverUrl && (
-                <img src={c.coverUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none" />
+                <img
+                  src={c.coverUrl}
+                  alt=""
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                />
               )}
-              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(20_50_74/.78))] px-3.5 pt-8 pb-3 text-[15px] leading-5 font-semibold text-white sm:text-base">
+              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(54_19_36/.78))] px-3.5 pt-8 pb-3 text-[15px] leading-5 font-semibold text-white sm:text-base">
                 <span className="line-clamp-2">{c.title}</span>
               </span>
             </button>

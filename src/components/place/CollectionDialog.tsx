@@ -30,9 +30,23 @@ export function CollectionDialog({ collectionId, onClose }: { collectionId: stri
       footer={member ? <ActiveListBar /> : undefined}
     >
       {collection.isPending ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Đang tải địa điểm">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-64" />
+            <div
+              key={i}
+              className="animate-reveal-up flex flex-col overflow-hidden rounded-block border border-line bg-white"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <Skeleton className="aspect-[16/10] rounded-none" />
+              <div className="flex flex-col gap-2.5 p-3.5">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="mt-2 flex items-center justify-between border-t border-line pt-3">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-8 w-20 rounded-control" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : collection.isError ? (

@@ -7,10 +7,10 @@ import { CompareToggle } from './Compare.tsx'
 export function PlaceGrid({ places }: { places: Schemas['PlaceCard'][] }) {
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {places.map((p) => (
-        <li key={p.id} className="flex">
-          <PlaceCard.Root place={p} className="w-full">
-            <PlaceCard.Media>
+      {places.map((p, i) => (
+        <li key={p.id} className="animate-reveal-up flex" style={{ animationDelay: `${Math.min(i * 45, 225)}ms` }}>
+          <PlaceCard.Root place={p} className="w-full transition-shadow hover:shadow-raised">
+            <PlaceCard.Media eager={i < 3}>
               {/* CR-002: tim = lưu vào "Đã lưu"; + = thêm vào danh sách đang chọn (bay vào icon list) */}
               <div className="absolute top-2 right-2 z-10 flex gap-1.5">
                 <SaveButton placeId={p.id} placeName={p.name} />

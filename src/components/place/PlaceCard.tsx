@@ -1,6 +1,8 @@
 import { createContext, use, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import type { Schemas } from '../../api/client.ts'
+import { useQueryClient } from '@tanstack/react-query'
+import { api, type Schemas } from '../../api/client.ts'
+import { unwrap } from '../../api/problem.ts'
 import { formatDistance, priceForTwo } from '../../lib/format.ts'
 import { PlaceMedia } from './PlaceMedia.tsx'
 
@@ -26,22 +28,36 @@ function Root({ place, children, className = '', muted = false }: { place: Place
   )
 }
 
-function Media({ children }: { children?: ReactNode }) {
+function Media({ children, eager = false }: { children?: ReactNode; eager?: boolean }) {
   const p = usePlace()
   return (
     <div className="relative aspect-[16/10] bg-action-soft">
-      <PlaceMedia url={p.coverUrl} name={p.name} />
+      <PlaceMedia url={p.coverUrl} name={p.name} eager={eager} />
       {children}
     </div>
   )
 }
 
-/** Tên là link phủ cả thẻ (thẻ là một vùng chạm); nút bên trong nằm trên lớp link. */
+/** Tên là link phủ cả thẻ (thẻ là một vùng chạm); nút bên trong nằm trên lớp link. Prefetch chi tiết khi hover/focus để mở trang tức thì. */
 function Title({ to }: { to?: string }) {
   const p = usePlace()
+  const qc = useQueryClient()
+  const prefetch = () => {
+    void qc.prefetchQuery({
+      queryKey: ['places', p.id],
+      queryFn: () => unwrap(api.GET('/places/{placeId}', { params: { path: { placeId: p.id } } })),
+      staleTime: 60_000,
+    })
+  }
   return (
     <h3 className="line-clamp-2 min-w-0 text-[17px] leading-6 font-semibold">
-      <Link to={to ?? `/places/${p.id}`} className="after:absolute after:inset-0 after:content-[''] hover:text-action">
+      <Link
+        to={to ?? `/places/${p.id}`}
+        state={{ preview: { name: p.name, coverUrl: p.coverUrl, areaName: p.areaName } }}
+        onMouseEnter={prefetch}
+        onFocus={prefetch}
+        className="after:absolute after:inset-0 after:content-[''] hover:text-action"
+      >
         {p.name}
       </Link>
     </h3>

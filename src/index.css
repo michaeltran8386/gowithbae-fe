@@ -8,23 +8,24 @@
 @theme {
   --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
 
-  --color-page: #f4f8fa;
+  /* Labubu Pink Theme — tương phản AA đã kiểm tra trên nền trắng & hồng phấn */
+  --color-page: #fdf4f7;
   --color-surface: #ffffff;
-  --color-ink: #14324a;
-  --color-ink-muted: #4a6275;
-  --color-line: #d6e6ef;
-  --color-field: #7f98a8;
+  --color-ink: #361324;
+  --color-ink-muted: #764d61;
+  --color-line: #f3d4e1;
+  --color-field: #b4859b;
 
-  --color-action: #0070b8;
-  --color-action-hover: #00659f;
-  --color-action-soft: #eaf7fd;
-  --color-sky: #00b0f8;
-  --color-sky-100: #bce9fa;
+  --color-action: #d6286c;
+  --color-action-hover: #b81d59;
+  --color-action-soft: #fde8f0;
+  --color-sky: #f472b6;
+  --color-sky-100: #fbcfe8;
 
-  --color-heart: #fa9a6e;
-  --color-attention: #b4532a;
-  --color-peach-50: #fff1ea;
-  --color-ticket-edge: #f2c6b0;
+  --color-heart: #ff5d8f;
+  --color-attention: #b83b5e;
+  --color-peach-50: #fff0f5;
+  --color-ticket-edge: #f5bfd2;
 
   --color-danger: #b42318;
   --color-danger-soft: #fdeceb;
@@ -34,11 +35,21 @@
   --radius-block: 14px;
   --radius-ticket: 16px;
 
-  --shadow-raised: 0 1px 2px rgb(20 50 74 / 0.06), 0 4px 12px rgb(20 50 74 / 0.06);
+  --shadow-raised: 0 1px 2px rgb(54 19 36 / 0.06), 0 4px 12px rgb(54 19 36 / 0.06);
 
   /* CR-002: chuyển động nhẹ, tắt khi người dùng chọn giảm chuyển động (xem @media bên dưới). */
   --animate-heart-pop: heart-pop 380ms cubic-bezier(0.3, 0.7, 0.4, 1.4);
   --animate-panel-in: panel-in 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
+  --animate-reveal-up: reveal-up 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
   @keyframes heart-pop {
     0% { transform: scale(1); }
     40% { transform: scale(1.35); }
@@ -82,7 +93,9 @@
   .animate-dialog-in,
   .animate-bell-spring-in,
   .animate-bell-spring-out,
-  .animate-bell-wiggle {
+  .animate-bell-wiggle,
+  .animate-reveal-up,
+  .animate-shimmer {
     animation: none !important;
   }
 }
