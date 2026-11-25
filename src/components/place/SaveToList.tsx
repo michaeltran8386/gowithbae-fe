@@ -34,7 +34,7 @@ export function resolveActiveList(lists: Schemas['SavedListSummary'][] | undefin
 }
 
 /** Nút tim: 1 chạm lưu vào / bỏ khỏi "Đã lưu". Khách chưa đăng nhập → đăng nhập rồi quay lại (UX-06). */
-export function SaveButton({ placeId, placeName, variant = 'icon' }: { placeId: string; placeName: string; variant?: 'icon' | 'labelled' }) {
+export function SaveButton({ placeId, placeName, variant = 'icon' }: { placeId: string; placeName: string; variant?: 'icon' | 'labelled' | 'glass' }) {
   const { state } = useAuth()
   const member = state.status === 'member'
   const navigate = useNavigate()
@@ -68,6 +68,29 @@ export function SaveButton({ placeId, placeName, variant = 'icon' }: { placeId: 
   }
 
   const heart = <Heart filled={saved} className={pop ? 'animate-heart-pop' : ''} />
+  if (variant === 'glass') {
+    return (
+      <button
+        type="button"
+        aria-label={saved ? `Bỏ lưu ${placeName}` : `Lưu ${placeName}`}
+        aria-pressed={saved}
+        onClick={toggle}
+        disabled={busy || (member && !list)}
+        onAnimationEnd={() => setPop(false)}
+        className="inline-flex size-7 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-xs transition-colors hover:bg-black/55 disabled:opacity-50"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" className={pop ? 'animate-heart-pop' : ''}>
+          <path
+            d="M12 20.5s-7.2-4.5-9.4-8.8C1 8.4 3.1 4.5 6.8 4.5c2.1 0 3.4 1.2 5.2 3.2 1.8-2 3.1-3.2 5.2-3.2 3.7 0 5.8 3.9 4.2 7.2-2.2 4.3-9.4 8.8-9.4 8.8z"
+            fill={saved ? '#f47278' : 'none'}
+            stroke={saved ? '#f47278' : '#ffffff'}
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    )
+  }
   return variant === 'icon' ? (
     <IconButton
       label={saved ? `Bỏ lưu ${placeName}` : `Lưu ${placeName}`}

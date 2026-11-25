@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { Clock, Flame, Search, Sparkles, TrendingUp, X } from 'lucide-react'
+import { ArrowRight, Clock, Flame, Search, Sparkles, TrendingUp, X } from 'lucide-react'
 
 export interface PinterestSearchBarProps {
   initialValue?: string
   onSubmitQuery?: (query: string) => void
   placeholder?: string
+  submitLabel?: string
+  pillStyle?: boolean
   className?: string
   autoFocus?: boolean
 }
@@ -84,6 +86,8 @@ export function PinterestSearchBar({
   initialValue = '',
   onSubmitQuery,
   placeholder = 'Tìm tên quán, khu vực, món ăn, hoạt động hẹn hò…',
+  submitLabel = 'Tìm',
+  pillStyle = false,
   className = '',
   autoFocus = false,
 }: PinterestSearchBarProps) {
@@ -197,10 +201,14 @@ export function PinterestSearchBar({
         <form
           role="search"
           onSubmit={handleSubmit}
-          className={`group flex min-h-13 w-full items-center gap-3 rounded-2xl border bg-white px-4 py-2 transition-all duration-200 ${
+          className={`group flex min-h-13 w-full items-center gap-2.5 border bg-white px-4 py-2 transition-all duration-200 sm:gap-3 ${
+            pillStyle ? 'rounded-full pr-2 pl-5 shadow-raised' : 'rounded-2xl'
+          } ${
             isOpen
               ? 'border-action shadow-2xl ring-4 ring-action/10'
-              : 'border-line shadow-xs hover:border-field/70 hover:shadow-md'
+              : pillStyle
+                ? 'border-line/90 hover:border-action/50'
+                : 'border-line shadow-xs hover:border-field/70 hover:shadow-md'
           }`}
         >
           <Search
@@ -218,7 +226,7 @@ export function PinterestSearchBar({
             placeholder={placeholder}
             onFocus={() => setIsOpen(true)}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full min-w-0 bg-transparent text-[15px] font-medium text-ink placeholder:text-ink-muted/70 focus:outline-none md:text-[16px]"
+            className="w-full min-w-0 bg-transparent text-[15px] font-medium text-ink placeholder:text-ink-muted/70 focus:outline-none md:text-[16px] [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
           />
 
           {query && (
@@ -237,16 +245,23 @@ export function PinterestSearchBar({
 
           <button
             type="submit"
-            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-action px-4 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action"
+            className={`inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-white shadow-xs transition-all focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              pillStyle
+                ? 'min-h-10 rounded-full bg-[linear-gradient(135deg,#f48b8e,#e56b70)] px-5 hover:brightness-95 focus-visible:outline-[#e56b70]'
+                : 'min-h-9 rounded-xl bg-action px-4 hover:bg-action-hover focus-visible:outline-action'
+            }`}
           >
-            <span>Tìm</span>
+            <span>{submitLabel}</span>
+            {pillStyle && <ArrowRight size={15} aria-hidden="true" />}
           </button>
         </form>
 
         {/* 3. BẢNG GỢI Ý PINTEREST SEARCH OVERLAY (HIỆN KHI BẤM / FOCUS VÀO THANH TÌM KIẾM) */}
         {isOpen && (
           <div
-            className="absolute top-full right-0 left-0 mt-2 max-h-[calc(100vh-160px)] overflow-y-auto rounded-3xl border border-line bg-white p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 md:p-6"
+            className={`absolute top-full mt-2.5 max-h-[calc(100vh-160px)] overflow-y-auto rounded-3xl border border-line bg-white p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 md:p-6 ${
+              pillStyle ? 'left-0 w-full md:w-[700px] lg:w-[800px]' : 'right-0 left-0'
+            }`}
             style={{ overscrollBehavior: 'contain' }}
           >
             {/* PHẦN 1: TÌM KIẾM GẦN ĐÂY */}

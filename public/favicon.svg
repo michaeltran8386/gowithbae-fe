@@ -1,14 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff8f9" />
+      <stop offset="100%" stop-color="#f9e8ec" />
+    </linearGradient>
+    <linearGradient id="go-grad" x1="10" y1="24" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f48b8e" />
+      <stop offset="100%" stop-color="#e56b70" />
+    </linearGradient>
     <filter id="go-glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="1.4" stdDeviation="2.4" flood-color="#7ce4f9" flood-opacity="0.85" />
+      <feDropShadow dx="0" dy="1.6" stdDeviation="2.2" flood-color="#f2a7ab" flood-opacity="0.75" />
     </filter>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="#ffffff" stroke="#d4eaf6" stroke-width="1.2" />
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg-grad)" stroke="#f0d2d7" stroke-width="1.4" />
   <g filter="url(#go-glow)" transform="translate(29 36.2) skewX(-9) translate(-29 -36.2)">
     <path
       d="M23.6 29.4C22.1 27.6 19.9 26.7 17.4 26.7C13.3 26.7 10.8 30.7 10.8 36.2C10.8 41.7 13.3 45.7 17.6 45.7C21.4 45.7 23.8 43.4 24.1 40.0V37.4H18.7"
-      stroke="#00b0f8"
+      stroke="url(#go-grad)"
       stroke-width="6"
       stroke-linecap="round"
       stroke-linejoin="round"
@@ -18,18 +26,18 @@
       cy="36.2"
       rx="6.8"
       ry="9.5"
-      stroke="#00b0f8"
+      stroke="url(#go-grad)"
       stroke-width="6"
     />
   </g>
   <path
     d="M0 3.6C-4.2 0.8-6.4-1.6-5.2-4.2C-4.2-6.2-1.4-6 0-3.8C1.4-6 4.2-6.2 5.2-4.2C6.4-1.6 4.2 0.8 0 3.6Z"
-    fill="#fa9a6e"
+    fill="#e56b70"
     transform="translate(46.2 17.5) rotate(8) scale(0.86)"
   />
   <path
     d="M0 3.6C-4.2 0.8-6.4-1.6-5.2-4.2C-4.2-6.2-1.4-6 0-3.8C1.4-6 4.2-6.2 5.2-4.2C6.4-1.6 4.2 0.8 0 3.6Z"
-    fill="#74d4fc"
+    fill="#8e9ef7"
     transform="translate(53.0 24.6) rotate(14) scale(0.74)"
   />
 </svg>

@@ -19,7 +19,7 @@ const usePlace = () => {
 function Root({ place, children, className = '', muted = false }: { place: Place; children: ReactNode; className?: string; muted?: boolean }) {
   return (
     <Ctx value={place}>
-      <article className={`relative flex flex-col overflow-hidden rounded-block border border-line bg-white ${muted ? 'opacity-70' : ''} ${className}`}>
+      <article className={`relative flex min-w-0 flex-col overflow-hidden rounded-block border border-line bg-white ${muted ? 'opacity-70' : ''} ${className}`}>
         {children}
       </article>
     </Ctx>
@@ -37,10 +37,10 @@ function Media({ children }: { children?: ReactNode }) {
 }
 
 /** Tên là link phủ cả thẻ (thẻ là một vùng chạm); nút bên trong nằm trên lớp link. */
-function Title({ to }: { to?: string }) {
+function Title({ to, className = 'text-[17px] leading-6' }: { to?: string; className?: string }) {
   const p = usePlace()
   return (
-    <h3 className="line-clamp-2 min-w-0 text-[17px] leading-6 font-semibold">
+    <h3 className={`line-clamp-2 min-w-0 font-semibold ${className}`}>
       <Link to={to ?? `/places/${p.id}`} className="after:absolute after:inset-0 after:content-[''] hover:text-action">
         {p.name}
       </Link>

@@ -3,10 +3,10 @@ import { PlaceCard } from './PlaceCard.tsx'
 import { AddToListButton, SaveButton } from './SaveToList.tsx'
 import { CompareToggle } from './Compare.tsx'
 
-/** Lưới thẻ địa điểm chuẩn cho trang khám phá/kết quả/bộ sưu tập: 1 / 2 / 3 cột. */
+/** Lưới thẻ địa điểm chuẩn cho trang khám phá/kết quả/bộ sưu tập: 1 / 2 cột theo layout thu gọn. */
 export function PlaceGrid({ places }: { places: Schemas['PlaceCard'][] }) {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid gap-4 sm:grid-cols-2">
       {places.map((p) => (
         <li key={p.id} className="flex">
           <PlaceCard.Root place={p} className="w-full">

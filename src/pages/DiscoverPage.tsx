@@ -1,77 +1,36 @@
-import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { CalendarClock, DollarSign, Filter, MapPin, Users } from 'lucide-react'
+import { ArrowRight, CalendarClock, MapPin, Sparkles, Users } from 'lucide-react'
 import type { Schemas } from '../api/client.ts'
 import { useAuth } from '../app/auth.tsx'
-import { useAreas, useCollections, useTaxonomies } from '../hooks/places.ts'
+import { useCollections, useSearchPlaces, useTaxonomies } from '../hooks/places.ts'
 import { useSiteContent } from '../hooks/adminSupport.ts'
 import { useMyChoiceSessions } from '../hooks/choice.ts'
 import { isReminderDue, useDatePlans, useDismissedReminders } from '../hooks/plans.ts'
-import { formatDateTime } from '../lib/format.ts'
+import { formatDateTime, priceForTwo } from '../lib/format.ts'
 import { useNow } from '../hooks/useNow.ts'
-import { BUDGETS } from '../lib/budgets.ts'
 import { VisitReminderTicket } from '../components/plan/VisitReminder.tsx'
 import { ChoiceCallout } from '../components/choice/InviteEntry.tsx'
+import { MOCKUP_TOPICS } from '../components/discover/CategoryThumb.tsx'
 import { CollectionDialog } from '../components/place/CollectionDialog.tsx'
-import { PrimaryButton } from '../components/ui/Button.tsx'
+import { PlaceCard } from '../components/place/PlaceCard.tsx'
+import { PlaceMedia } from '../components/place/PlaceMedia.tsx'
+import { SaveButton } from '../components/place/SaveToList.tsx'
 import { ErrorState, Skeleton } from '../components/ui/StateView.tsx'
 import { PinterestSearchBar } from '../components/search/PinterestSearchBar.tsx'
 
-/** S-01 Khám phá — bố cục cột giữa gọn như MochiVocab kèm nền mây hai bên, lưới gợi ý 2 ảnh/hàng. */
+const DEFAULT_HERO_TITLE = 'Tìm nơi hẹn hò'
+const DEFAULT_HERO_SUBTITLE = 'Lọc theo khu vực, ngân sách cho hai người và việc hai bạn muốn làm.'
+
+/** S-01 Khám phá — Bố cục & tông màu chuẩn theo mockup: Hero cặp đôi + thanh Gợi ý chủ đề + Đang hot & Cùng chọn. */
 export function DiscoverPage() {
   const { state } = useAuth()
   return (
-    <>
-      <DiscoverSideBackdrop />
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl border border-line/80 bg-white/95 p-4 shadow-raised sm:gap-10 sm:p-7 md:p-8">
-        <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
-        {state.status === 'member' && <ContinueSection />}
-        <SearchHero />
-        <ChoiceCallout />
-        <Collections />
-      </div>
-    </>
-  )
-}
-
-/** Nền trời & mây hai bên khoảng trống màn hình rộng (tham khảo bố cục MochiVocab). */
-function DiscoverSideBackdrop() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-16 bottom-0 -z-10 overflow-hidden bg-[linear-gradient(180deg,#dff2fc_0%,#eef7fc_55%,#f4f8fa_100%)]"
-    >
-      {/* Quầng sáng mềm hai bên */}
-      <div className="absolute -top-24 -left-24 hidden size-96 rounded-full bg-sky-100/55 blur-3xl lg:block" />
-      <div className="absolute top-20 -right-24 hidden size-96 rounded-full bg-peach-50/80 blur-3xl lg:block" />
-
-      {/* Đám mây trên bên trái */}
-      <svg viewBox="0 0 260 120" className="absolute top-12 -left-10 hidden w-56 text-white/85 lg:block xl:w-72" fill="currentColor">
-        <path d="M24 102h196c18 0 32-13 32-29 0-15-12-27-27-29-5-21-24-36-47-36-19 0-36 10-44 26-6-4-14-6-22-6-22 0-40 17-42 38-15 2-26 14-26 29 0 16 12 7 20 7Z" />
-      </svg>
-
-      {/* Đám mây trên bên phải */}
-      <svg viewBox="0 0 260 120" className="absolute top-28 -right-10 hidden w-56 text-white/85 lg:block xl:w-72" fill="currentColor">
-        <path d="M36 104h192c17 0 30-12 30-28s-13-28-29-29c-4-23-24-40-48-40-20 0-37 11-45 28-7-5-16-8-26-8-23 0-42 18-43 41-15 2-26 14-26 28 0 12 10 8 25 8Z" />
-      </svg>
-
-      {/* Lớp mây chân trời bên trái */}
-      <svg viewBox="0 0 420 190" className="absolute bottom-0 -left-8 hidden w-80 text-white/95 lg:block xl:w-[440px]" fill="currentColor">
-        <path d="M0 190V116c22-18 54-24 84-14 14-30 46-50 82-50 38 0 71 22 84 54 14-9 31-14 50-12 34 3 62 29 66 63 14 2 28 11 36 33H0Z" />
-      </svg>
-
-      {/* Lớp mây chân trời bên phải */}
-      <svg viewBox="0 0 420 190" className="absolute -right-8 bottom-0 hidden w-80 text-white/95 lg:block xl:w-[440px]" fill="currentColor">
-        <path d="M420 190V112c-22-17-54-22-82-12-15-31-47-52-84-52-37 0-70 21-83 52-15-8-33-11-51-8-33 5-59 31-63 64-15 3-28 13-37 34h400Z" />
-      </svg>
-
-      {/* Điểm nhấn trái tim & sao nhỏ hai bên lề */}
-      <svg viewBox="0 0 24 24" className="absolute top-64 left-12 hidden size-7 text-heart/45 xl:block" fill="currentColor">
-        <path d="M12 20.5s-7.2-4.5-9.4-8.8C1 8.4 3.1 4.5 6.8 4.5c2.1 0 3.4 1.2 5.2 3.2 1.8-2 3.1-3.2 5.2-3.2 3.7 0 5.8 3.9 4.2 7.2-2.2 4.3-9.4 8.8-9.4 8.8z" />
-      </svg>
-      <svg viewBox="0 0 24 24" className="absolute top-72 right-14 hidden size-6 text-sky/35 xl:block" fill="currentColor">
-        <path d="M12 20.5s-7.2-4.5-9.4-8.8C1 8.4 3.1 4.5 6.8 4.5c2.1 0 3.4 1.2 5.2 3.2 1.8-2 3.1-3.2 5.2-3.2 3.7 0 5.8 3.9 4.2 7.2-2.2 4.3-9.4 8.8-9.4 8.8z" />
-      </svg>
+    <div className="flex flex-col gap-7">
+      <h1 className="sr-only">Khám phá nơi hẹn hò</h1>
+      <HeroAndTopics />
+      {state.status === 'member' && <ContinueSection />}
+      <HotAndChoiceBento />
+      <Collections />
     </div>
   )
 }
@@ -89,7 +48,7 @@ function ContinueSection() {
 
   if (plans.isPending || sessions.isPending)
     return (
-      <div className="grid gap-3 sm:grid-cols-2" aria-hidden="true">
+      <div className="grid gap-3 md:grid-cols-3" aria-hidden="true">
         <Skeleton className="h-36" />
         <Skeleton className="h-36" />
       </div>
@@ -101,7 +60,7 @@ function ContinueSection() {
       <h2 id="continue-heading" className="mb-3 text-[17px] font-semibold">
         Tiếp tục
       </h2>
-      <div className="grid items-start gap-3 sm:grid-cols-2">
+      <div className="grid items-start gap-3 md:grid-cols-3">
         {due.map((p) => (
           <VisitReminderTicket key={p.id} plan={p} />
         ))}
@@ -139,170 +98,320 @@ function SessionCard({ session }: { session: Schemas['ChoiceSession'] }) {
   )
 }
 
-function SearchHero() {
+function HeroAndTopics() {
   const navigate = useNavigate()
-  const areas = useAreas()
   const taxonomies = useTaxonomies()
-  const [areaId, setAreaId] = useState('')
-  const [budget, setBudget] = useState('')
-  const [activeCategoryTab, setActiveCategoryTab] = useState<'ACTIVITY' | 'OCCASION' | 'VIBE'>('ACTIVITY')
-
+  const placesPreview = useSearchPlaces({ size: 1 })
   const hero = useSiteContent().data?.homeHero
 
+  const totalPlaces = placesPreview.data?.page?.totalElements
   const activities = (taxonomies.data ?? []).filter((t) => t.group === 'ACTIVITY' && t.status === 'ACTIVE')
-  const occasions = (taxonomies.data ?? []).filter((t) => t.group === 'OCCASION' && t.status === 'ACTIVE')
-  const vibes = (taxonomies.data ?? []).filter((t) => t.group === 'VIBE' && t.status === 'ACTIVE')
+  const customTitle = hero?.title && hero.title !== DEFAULT_HERO_TITLE ? hero.title : null
+  const customSubtitle = hero?.subtitle && hero.subtitle !== DEFAULT_HERO_SUBTITLE ? hero.subtitle : null
 
-  function handleFilterSubmit() {
-    const params = new URLSearchParams()
-    if (areaId) params.set('areaId', areaId)
-    if (budget) params.set('budget', budget)
-    navigate(`/search?${params}`)
+  function topicHref(item: (typeof MOCKUP_TOPICS)[number]) {
+    const matched = activities.find((a) => a.code === item.code)
+    if (matched) return `/search?tagIds=${matched.id}`
+    return `/search?q=${encodeURIComponent(item.fallbackQuery)}`
   }
 
-  const currentCategoryTags =
-    activeCategoryTab === 'ACTIVITY' ? activities : activeCategoryTab === 'OCCASION' ? occasions : vibes
+  function renderTopicItem(item: (typeof MOCKUP_TOPICS)[number], isDuplicate = false) {
+    return (
+      <li key={isDuplicate ? `${item.key}-dup` : item.key} className="shrink-0">
+        <Link
+          to={topicHref(item)}
+          tabIndex={isDuplicate ? -1 : undefined}
+          className="group flex flex-col items-center gap-1 rounded-2xl px-2 py-1 transition-transform hover:-translate-y-0.5"
+        >
+          <span className="relative block h-10 w-[84px] overflow-hidden rounded-full bg-[#fdf4f5] shadow-2xs ring-1 ring-[#efe4e8]">
+            <img
+              src={item.image}
+              alt=""
+              onError={(e) => {
+                e.currentTarget.src = item.fallbackImage
+              }}
+              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+            />
+            {/* Viền mây gợn sóng vector sắc nét dưới đáy mỗi viên thuốc chủ đề */}
+            <svg
+              viewBox="0 0 84 12"
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-2.5 w-full text-white/92"
+              fill="currentColor"
+            >
+              <path d="M0 12V7c4-3 9-3 13 0 4-3.5 10-3.5 14 0 5-4 12-4 17 0 4-3.5 10-3.5 14 0 5-3.5 10-3.5 14 0 4-3 8-3 12 0v5H0Z" />
+            </svg>
+          </span>
+          <span className="text-[12px] font-semibold whitespace-nowrap text-[#23304e] group-hover:text-[#e26b70]">
+            {item.label}
+          </span>
+        </Link>
+      </li>
+    )
+  }
 
   return (
-    <section aria-labelledby="search-heading" className="flex flex-col gap-5">
-      <div>
-        <h2 id="search-heading" className="text-2xl leading-8 font-bold md:text-3xl md:leading-9 text-ink">
-          {hero?.title || 'Tìm nơi hẹn hò lý tưởng'}
-        </h2>
-        <p className="mt-1 text-ink-muted">
-          {hero?.subtitle || 'Khám phá quán cà phê, nhà hàng và không gian dành riêng cho hai người.'}
-        </p>
-      </div>
+    <div className="min-w-0">
+      {/* Khung Hero nằm gọn trong container; tách lớp nền overflow-hidden riêng để bảng tìm kiếm xổ xuống không bị cắt */}
+      <section aria-labelledby="search-heading" className="relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[28px] bg-[#f6f0f5]"
+        >
+          {/* Ảnh cặp đôi bên phải đã làm nét 3x (không tràn ra ngoài khung) */}
+          <img
+            src="/images/hero-couple.png"
+            alt=""
+            className="absolute top-0 right-0 hidden h-full w-auto max-w-none select-none md:block"
+          />
 
-      {/* BẬC 1: THANH SEARCH NẰM RIÊNG MỘT BẬC VÀ TRẢI DÀI RA (Phong cách Pinterest Search) */}
-      <div className="w-full">
-        <PinterestSearchBar
-          placeholder="Tìm quán cà phê, nhà hàng lãng mạn, workshop, rooftop…"
-          onSubmitQuery={(q) => {
-            const params = new URLSearchParams()
-            if (q) params.set('q', q)
-            if (areaId) params.set('areaId', areaId)
-            if (budget) params.set('budget', budget)
-            navigate(`/search?${params}`)
-          }}
-        />
-      </div>
+          {/* Hai trái tim vẽ tay sắc nét bằng Vector SVG phía trên cặp đôi */}
+          <svg
+            viewBox="0 0 88 46"
+            className="absolute top-3 right-[195px] hidden h-8 w-16 text-white/95 drop-shadow-[0_1px_2px_rgba(68,94,148,0.18)] md:block"
+            fill="none"
+          >
+            <path
+              d="M21 38s-11-6.2-14-12.6C4.4 20 7.6 13.8 13 13.8c3.2 0 5.4 1.8 8 4.8 2.6-3 4.8-4.8 8-4.8 5.4 0 8.6 6.2 6 11.6C32 31.8 21 38 21 38Z"
+              stroke="currentColor"
+              strokeWidth="2.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M66 29s-8.5-4.8-10.8-9.8C53.2 15 55.6 10.2 59.8 10.2c2.5 0 4.2 1.4 6.2 3.7 2-2.3 3.7-3.7 6.2-3.7 4.2 0 6.6 4.8 4.6 9-2.3 5-10.8 9.8-10.8 9.8Z"
+              stroke="currentColor"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
 
-      {/* BẬC 2: SẮP XẾP LẠI BỘ LỌC (FILTER LAYOUT) TRỰC QUAN & TINH GỌN */}
-      <div className="rounded-2xl border border-line bg-page/55 p-4 md:p-5">
-        <div className="flex flex-col gap-4">
-          {/* Hàng filter nhanh: Khu vực + Ngân sách + Nút lọc */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[1.65fr_1.35fr_auto]">
-            {/* Lọc Khu vực */}
-            <label className="relative flex flex-col gap-1">
-              <span className="text-xs font-bold text-ink-muted">Khu vực hẹn hò</span>
-              <div className="relative">
-                <MapPin size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-action" aria-hidden="true" />
-                <select
-                  value={areaId}
-                  onChange={(e) => setAreaId(e.target.value)}
-                  className="min-h-11 w-full rounded-control border border-field/40 bg-white pr-2 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:outline-none"
-                >
-                  <option value="">Tất cả khu vực (Sài Gòn)</option>
-                  {areas.data?.filter((a) => a.status === 'ACTIVE').map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
-
-            {/* Lọc Ngân sách */}
-            <label className="relative flex flex-col gap-1">
-              <span className="text-xs font-bold text-ink-muted">Ngân sách cho 2 người</span>
-              <div className="relative">
-                <DollarSign size={17} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-action" aria-hidden="true" />
-                <select
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  className="min-h-11 w-full rounded-control border border-field/40 bg-white pr-2 pl-9 text-sm font-medium text-ink transition-colors hover:border-action focus:border-action focus:outline-none"
-                >
-                  <option value="">Mọi mức ngân sách</option>
-                  {BUDGETS.map((b) => (
-                    <option key={b.value} value={b.value}>
-                      {b.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
-
-            {/* Nút lọc nhanh */}
-            <div className="flex items-end">
-              <PrimaryButton onClick={handleFilterSubmit} className="min-h-11 w-full px-4 whitespace-nowrap">
-                <Filter size={16} aria-hidden="true" />
-                <span>Lọc địa điểm</span>
-              </PrimaryButton>
-            </div>
-          </div>
-
-          {/* Phân nhóm Tags: Hoạt động, Dịp hẹn, Không khí */}
-          <div className="border-t border-line/60 pt-3">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="text-xs font-bold text-ink-muted">Gợi ý theo chủ đề:</span>
-              <div className="flex rounded-lg bg-page p-0.5 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryTab('ACTIVITY')}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
-                    activeCategoryTab === 'ACTIVITY' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Hoạt động
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryTab('OCCASION')}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
-                    activeCategoryTab === 'OCCASION' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Dịp hẹn
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryTab('VIBE')}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
-                    activeCategoryTab === 'VIBE' ? 'bg-white text-action shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  Không khí
-                </button>
-              </div>
-            </div>
-
-            {currentCategoryTags.length > 0 && (
-              <nav aria-label="Tìm nhanh theo chủ đề" className="-mx-2 overflow-x-auto px-2 pb-1 md:mx-0 md:px-0">
-                <ul className="flex gap-2 md:flex-wrap">
-                  {currentCategoryTags.map((tag) => (
-                    <li key={tag.id}>
-                      <Link
-                        to={`/search?tagIds=${tag.id}${areaId ? `&areaId=${areaId}` : ''}${budget ? `&budget=${budget}` : ''}`}
-                        className="inline-flex min-h-9 items-center rounded-full border border-line bg-page/70 px-3.5 text-xs font-medium text-ink transition-colors hover:border-action hover:bg-action-soft hover:text-action whitespace-nowrap"
-                      >
-                        {tag.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            )}
+          {/* Dòng chữ doodle "Better dates, Happier you ♡" + đường cong vẽ tay sắc nét bằng Vector SVG */}
+          <div className="absolute top-8 right-[64px] hidden -rotate-8 select-none md:block">
+            <p
+              className="text-[12.5px] leading-[1.22] font-semibold tracking-wide text-white/95 drop-shadow-[0_1px_2px_rgba(68,94,148,0.2)]"
+              style={{ fontFamily: '"Comic Sans MS", "Segoe Print", "Bradley Hand", cursive' }}
+            >
+              Better dates,
+              <br />
+              Happier you ♡
+            </p>
+            <svg viewBox="0 0 64 20" className="mt-1 ml-3 h-3.5 w-12 text-white/90" fill="none">
+              <path d="M4 15c18-1 38-7 54-13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </div>
         </div>
+
+        <div className="relative px-4 pt-6 pb-8 md:w-[55%] md:px-6 md:pt-7 md:pb-10">
+          {/* Nét vẽ doodle bên trái và trái tim vẽ tay bên phải tiêu đề giống bản thiết kế */}
+          <div className="relative inline-block">
+            <svg
+              viewBox="0 0 24 32"
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-1 -left-5 hidden h-6 w-4 text-[#23304e] md:block"
+              fill="none"
+            >
+              <path d="M18 6L8 2M15 15L4 14M17 23L8 26" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+            </svg>
+            <svg
+              viewBox="0 0 28 26"
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-2 -right-7 hidden h-5 w-5 rotate-12 text-[#e56b70] sm:block"
+              fill="none"
+            >
+              <path
+                d="M14 23s-8.5-5.2-11-10.2C1 8.8 3.5 4 7.8 4c2.5 0 4.2 1.4 6.2 3.8C16 5.4 17.7 4 20.2 4 24.5 4 27 8.8 25 12.8 22.5 17.8 14 23 14 23Z"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+
+            <h2 id="search-heading" className="text-2xl leading-[1.18] font-extrabold tracking-tight text-[#23304e] sm:text-3xl md:text-[34px]">
+              {customTitle ?? (
+                <>
+                  <span className="block">Buổi hẹn hoàn hảo</span>
+                  <span className="mt-0.5 block">
+                    chỉ cần{' '}
+                    <span className="relative inline-block text-[#e56b70]">
+                      GoWithBae
+                      <svg
+                        viewBox="0 0 120 10"
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -bottom-1 left-0 h-2 w-full text-[#efb1b4]"
+                        fill="none"
+                      >
+                        <path d="M2 7c32-5 76-5 116-1" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  </span>
+                </>
+              )}
+            </h2>
+          </div>
+
+          <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-[#4a5578] sm:text-[14px]">
+            {customSubtitle ?? (
+              <>
+                Khám phá{' '}
+                <span className="font-bold text-[#e26b70] tabular">
+                  {totalPlaces != null ? `${totalPlaces.toLocaleString('vi-VN')} địa điểm` : 'các địa điểm'}
+                </span>{' '}
+                phù hợp
+                <br className="hidden sm:inline" /> với sở thích, ngân sách và mood của hai bạn.
+              </>
+            )}
+          </p>
+
+          {/* Thanh tìm kiếm pill trắng + nút Tìm kiếm hồng san hô dịu đúng màu mockup */}
+          <div className="mt-4 max-w-[430px]">
+            <PinterestSearchBar
+              placeholder="Hôm nay thử gì mới…"
+              submitLabel="Tìm kiếm"
+              pillStyle
+              onSubmitQuery={(q) => {
+                const params = new URLSearchParams()
+                if (q) params.set('q', q)
+                navigate(`/search?${params}`)
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Thanh + Gợi ý chủ đề dạng băng chuyền vô tận (infinity marquee): di chuột vào tạm dừng, thả chuột ra chạy tiếp */}
+      <div className="relative z-10 -mt-4">
+        <div className="flex items-center justify-between gap-2.5 rounded-[26px] border border-white bg-white/95 px-3 py-2.5 shadow-[0_10px_28px_rgba(35,48,78,0.06)] backdrop-blur sm:px-4">
+          <div className="hidden shrink-0 items-center gap-1.5 rounded-2xl bg-[#fcf3f4] px-3 py-2.5 sm:flex">
+            <Sparkles size={14} className="text-[#e56b70]" aria-hidden="true" />
+            <span className="text-xs leading-tight font-bold text-[#23304e]">
+              Gợi ý
+              <br />
+              chủ đề
+            </span>
+          </div>
+
+          <nav
+            aria-label="Tìm nhanh theo chủ đề"
+            className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-20px),transparent)]"
+          >
+            <div className="animate-topic-marquee">
+              <ul className="flex shrink-0 items-center gap-3 pr-3">
+                {MOCKUP_TOPICS.map((item) => renderTopicItem(item, false))}
+              </ul>
+              <ul aria-hidden="true" className="flex shrink-0 items-center gap-3 pr-3">
+                {MOCKUP_TOPICS.map((item) => renderTopicItem(item, true))}
+              </ul>
+            </div>
+          </nav>
+
+          <Link
+            to="/search"
+            className="hidden shrink-0 items-center gap-1 rounded-2xl bg-[#eef1fd] px-3.5 py-2.5 text-xs leading-tight font-semibold text-[#384670] transition-colors hover:bg-[#e1e6fc] md:inline-flex"
+          >
+            <span>
+              Khám phá
+              <br />
+              thêm
+            </span>
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
       </div>
-    </section>
+    </div>
+  )
+}
+
+/** Hàng nội dung chính: Trái (Đang hot — 2 ảnh 1 hàng để thoáng trong layout thu gọn) + Phải (Thẻ Cùng chọn). */
+function HotAndChoiceBento() {
+  const hot = useSearchPlaces({ size: 4 })
+
+  return (
+    <div className="grid min-w-0 items-stretch gap-5 lg:grid-cols-12">
+      <section aria-labelledby="hot-heading" className="flex min-w-0 flex-col lg:col-span-7">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 id="hot-heading" className="flex items-center gap-1.5 text-[19px] font-extrabold text-[#23304e]">
+            <span aria-hidden="true" className="text-lg leading-none">
+              🔥
+            </span>
+            <span>Đang hot</span>
+          </h2>
+          <Link to="/search" className="inline-flex items-center gap-1 text-xs font-semibold text-[#4a5578] hover:text-[#23304e] hover:underline">
+            <span>Xem thêm</span>
+            <ArrowRight size={13} aria-hidden="true" />
+          </Link>
+        </div>
+
+        {hot.isPending ? (
+          <div className="grid grid-cols-2 gap-3.5" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-44 rounded-2xl" />
+            ))}
+          </div>
+        ) : hot.isError ? (
+          <ErrorState error={hot.error} onRetry={() => hot.refetch()} />
+        ) : (
+          <ul className="grid min-w-0 grid-cols-2 gap-3.5">
+            {hot.data.items.slice(0, 4).map((p) => {
+              const price = priceForTwo(p.price)
+              const tagText = p.tags
+                .slice(0, 2)
+                .map((t) => t.name)
+                .join(' · ')
+              return (
+                <li key={p.id} className="flex min-w-0">
+                  <PlaceCard.Root
+                    place={p}
+                    className="w-full rounded-2xl border-[#efe3e6] bg-white shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-raised"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden rounded-t-2xl bg-[#f5eff5]">
+                      <PlaceMedia url={p.coverUrl} name={p.name} />
+                      {/* Nút tim nhỏ trong suốt ở góc trên phải đúng như ảnh thiết kế */}
+                      <div className="absolute top-2 right-2 z-10">
+                        <SaveButton placeId={p.id} placeName={p.name} variant="glass" />
+                      </div>
+                      {(tagText || price) && (
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-x-2 bottom-2 flex">
+                          <span className="max-w-full truncate rounded-full bg-black/55 px-2.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
+                            {[tagText, price].filter(Boolean).join(' · ')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1 p-3">
+                      <PlaceCard.Title className="text-[14px] leading-5 text-[#23304e]" />
+                      <div className="mt-auto flex items-center justify-between gap-1 pt-0.5 text-[11.5px] text-[#66708a]">
+                        <span className="inline-flex min-w-0 items-center gap-0.5 truncate">
+                          <MapPin size={11} className="shrink-0" aria-hidden="true" />
+                          <span className="truncate">{p.areaName ?? 'Quận 1'}, HCM</span>
+                        </span>
+                        <span className="inline-flex shrink-0 items-center gap-0.5 font-semibold text-[#5b647d] tabular">
+                          <span className="text-[#f59e0b]" aria-hidden="true">
+                            ★
+                          </span>
+                          <span>{price ?? 'Mới'}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </PlaceCard.Root>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      <div className="min-w-0 lg:col-span-5">
+        <ChoiceCallout />
+      </div>
+    </div>
   )
 }
 
 /**
- * Bộ sưu tập dạng thẻ ảnh 2 cột (2 ảnh/hàng). Bấm vào mở popup giữa màn hình, không chuyển trang;
- * id nằm trên URL (?collection=) để nút Quay lại đóng popup và gửi link được.
+ * Hỗ trợ mở popup bộ sưu tập (?collection=) mà không làm rối bố cục trang chủ mới.
  */
 function Collections() {
   const collections = useCollections()
@@ -315,42 +424,23 @@ function Collections() {
     setParams(next, { replace: !id, preventScrollReset: true })
   }
 
-  if (collections.isError) return <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
-  if (collections.isPending)
-    return (
-      <div className="grid grid-cols-2 gap-3.5 sm:gap-4" aria-hidden="true">
-        {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="aspect-[4/3]" />
-        ))}
-      </div>
-    )
-  if (collections.data.length === 0) return null // không có bộ sưu tập đang hiển thị: giữ tìm kiếm
-
   return (
-    <section aria-labelledby="collections-heading">
-      <h2 id="collections-heading" className="mb-3.5 text-xl font-bold text-ink">
-        Gợi ý cho bạn
-      </h2>
-      <ul className="grid grid-cols-2 gap-3.5 sm:gap-4">
-        {collections.data.map((c) => (
-          <li key={c.id}>
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              onClick={() => setOpen(c.id)}
-              className="group relative block aspect-[4/3] w-full overflow-hidden rounded-block border border-line bg-[linear-gradient(160deg,var(--color-sky-100),var(--color-action-soft)_55%,var(--color-peach-50))] text-left transition-transform hover:-translate-y-0.5 hover:shadow-raised focus-visible:outline-2 focus-visible:outline-action motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-            >
-              {c.coverUrl && (
-                <img src={c.coverUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none" />
-              )}
-              <span className="absolute inset-x-0 bottom-0 bg-[linear-gradient(transparent,rgb(20_50_74/.78))] px-3.5 pt-8 pb-3 text-[15px] leading-5 font-semibold text-white sm:text-base">
-                <span className="line-clamp-2">{c.title}</span>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <>
+      {collections.data && collections.data.length > 0 && (
+        <section aria-labelledby="collections-heading" className="sr-only">
+          <h2 id="collections-heading">Gợi ý cho bạn</h2>
+          <ul>
+            {collections.data.map((c) => (
+              <li key={c.id}>
+                <button type="button" aria-haspopup="dialog" onClick={() => setOpen(c.id)}>
+                  {c.title}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {openId && <CollectionDialog collectionId={openId} onClose={() => setOpen(null)} />}
-    </section>
+    </>
   )
 }

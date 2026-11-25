@@ -59,4 +59,14 @@ describe('Giỏ hẹn (CR-002)', () => {
     expect(screen.queryByRole('button', { name: 'Đổi tên' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Xóa' })).not.toBeInTheDocument()
   })
+
+  it('nút trái tim ở góc phải header hiển thị số lượng yêu thích và mở hộp Danh sách yêu thích', async () => {
+    const { user } = renderApp('/', { member: true })
+    const favBtn = await screen.findByRole('button', { name: /^Danh sách yêu thích/ })
+    expect(favBtn).toBeInTheDocument()
+    await user.click(favBtn)
+    const dialog = await screen.findByRole('dialog', { name: 'Danh sách yêu thích' })
+    expect(within(dialog).getByRole('heading', { name: 'Danh sách yêu thích' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /Xem toàn bộ yêu thích/ })).toHaveAttribute('href', `/saved/${defaultList().id}`)
+  })
 })

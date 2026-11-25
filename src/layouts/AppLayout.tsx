@@ -5,6 +5,7 @@ import { useSiteContent } from '../hooks/adminSupport.ts'
 import { useSavedLists } from '../hooks/saved.ts'
 import { CompareTray } from '../components/place/Compare.tsx'
 import { CartIcon } from '../components/cart/CartIcons.tsx'
+import { FavoritesHeart } from '../components/cart/FavoritesHeart.tsx'
 import { ListDock } from '../components/cart/ListDock.tsx'
 import { NotificationBell } from '../components/notifications/NotificationBell.tsx'
 import { Logo } from '../components/ui/Logo.tsx'
@@ -39,23 +40,25 @@ export function AppLayout() {
   const site = useSiteContent().data
 
   return (
-    <div className="min-h-dvh pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="min-h-dvh overflow-x-clip bg-[#fdf4f5] pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
       <a href="#main" className="sr-only z-50 rounded-control bg-white px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2">
         Bỏ qua đến nội dung chính
       </a>
       <MockDataBanner />
       {site?.homeBanner.enabled && site.homeBanner.text && <SiteBanner text={site.homeBanner.text} linkUrl={site.homeBanner.linkUrl} />}
-      <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 md:px-6">
+      <header className="sticky top-0 z-40 border-b border-[#efe3e6] bg-[#fcf3f4]/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-4xl items-center gap-6 px-4 md:px-6">
           <Logo />
-          <nav aria-label="Điều hướng chính" className="hidden flex-1 gap-1 md:flex">
+          <nav aria-label="Điều hướng chính" className="hidden flex-1 items-center gap-2 md:flex">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) =>
-                  `rounded-control px-3 py-2 text-[15px] whitespace-nowrap ${isActive ? 'bg-action-soft font-semibold text-action' : 'text-ink-muted hover:text-ink'}`
+                  `relative rounded-full px-4 py-1.5 text-[15px] whitespace-nowrap transition-colors ${
+                    isActive ? 'bg-[#d5dcfe] font-semibold text-[#23304e]' : 'text-[#4a5578] hover:text-[#23304e]'
+                  }`
                 }
               >
                 {n.label}
@@ -63,6 +66,7 @@ export function AppLayout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
+            {member && <FavoritesHeart />}
             {member && <CartLink />}
             {member ? (
               <NotificationBell />
@@ -77,14 +81,14 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-5 md:px-6 md:py-8">
+      <main id="main" className="mx-auto max-w-4xl px-4 py-5 md:px-6 md:py-7">
         <Outlet />
       </main>
 
       <CompareTray />
       {showDock && <ListDock />}
 
-      <footer className="mx-auto max-w-6xl px-4 py-8 text-[13px] text-ink-muted md:px-6 md:py-10">
+      <footer className="mx-auto max-w-4xl px-4 py-8 text-[13px] text-ink-muted md:px-6 md:py-10">
         <nav aria-label="Thông tin" className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
           {FOOTER_LINKS.map((l) => (
             <Link key={l.to} to={l.to} className="hover:text-ink hover:underline">
@@ -137,7 +141,7 @@ function CartLink() {
     >
       <CartIcon size={24} />
       {total > 0 && (
-        <span aria-hidden="true" className="absolute top-1 right-0.5 min-w-5 rounded-full bg-attention px-1 text-center text-[11px] leading-5 font-bold text-white tabular">
+        <span aria-hidden="true" className="absolute top-0.5 right-0 min-w-5 rounded-full bg-[#ef4444] px-1 text-center text-[11px] leading-5 font-bold text-white ring-2 ring-white tabular">
           {total > 99 ? '99+' : total}
         </span>
       )}
@@ -153,7 +157,7 @@ function SiteBanner({ text, linkUrl }: { text: string; linkUrl?: string | null }
       <span>{text}</span>
     </>
   )
-  const cls = 'mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 text-sm md:px-6'
+  const cls = 'mx-auto flex max-w-4xl items-center gap-2 px-4 py-2 text-sm md:px-6'
   return (
     <div role="region" aria-label="Thông báo" className="bg-peach-50 text-ink">
       {linkUrl?.startsWith('/') ? (

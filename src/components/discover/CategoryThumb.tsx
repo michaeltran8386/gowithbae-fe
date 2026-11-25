@@ -1,0 +1,60 @@
+/** Ảnh thumbnail độ phân giải cao cho 7 chủ đề trên thanh Gợi ý chủ đề theo đúng thiết kế mockup. */
+export const MOCKUP_TOPICS = [
+  {
+    key: 'cafe',
+    label: 'Cafe chill',
+    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/cafe.png',
+    code: 'CAFE',
+    fallbackQuery: 'cà phê',
+  },
+  {
+    key: 'dining',
+    label: 'Ăn tối',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/dining.png',
+    code: 'DINING',
+    fallbackQuery: 'ăn uống',
+  },
+  {
+    key: 'workshop',
+    label: 'Workshop',
+    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/workshop.png',
+    code: 'PAINTING',
+    fallbackQuery: 'workshop',
+  },
+  {
+    key: 'movie',
+    label: 'Xem phim',
+    image: 'https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/movie.png',
+    code: 'MOVIE',
+    fallbackQuery: 'xem phim',
+  },
+  {
+    key: 'bar',
+    label: 'Bar & Rooftop',
+    image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/bar.png',
+    code: 'EXHIBITION',
+    fallbackQuery: 'rooftop',
+  },
+  {
+    key: 'walk',
+    label: 'Dạo chơi',
+    image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/walk.png',
+    code: 'SPORTS',
+    fallbackQuery: 'dạo chơi',
+  },
+  {
+    key: 'games',
+    label: 'Trò chơi',
+    image: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=320&q=85',
+    fallbackImage: '/images/topics/games.png',
+    code: 'GAMES',
+    fallbackQuery: 'trò chơi',
+  },
+] as const
+
